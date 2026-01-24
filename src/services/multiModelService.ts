@@ -593,10 +593,8 @@ export const getAzureIndexCount = async (endpoint: string, key: string, indexNam
 };
 
 export const generateModelResponse = async (model: MultiModel, prompt: string, attachments: AttachedFile[], activeTools: MCPTool[], systemInstruction?: string, history: Message[] = []): Promise<string> => {
-	// Filter tools to only include those relevant to the current prompt
 	const relevantTools = filterRelevantTools(prompt, activeTools);
 
-	// Only append tools if there are relevant ones
 	const initialPrompt = relevantTools.length > 0 ? appendToolsToPrompt(prompt, relevantTools) : prompt;
 
 	let currentPrompt = initialPrompt;

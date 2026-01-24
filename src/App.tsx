@@ -934,7 +934,7 @@ const App = () => {
 				filename += '.html';
 			}
 		} else if (format === 'pptx') {
-			const slideTexts = text.split(/\n-{3,}\n/); // Split by horizontal rule (---)
+			const slideTexts = text.split(/\n-{3,}\n/);
 			const slidesHTML = await Promise.all(slideTexts.map(async (slideText) => {
 				return await marked.parse(slideText);
 			}));
@@ -1345,8 +1345,28 @@ const App = () => {
 	};
 
 	const handleSendWithText = async (textOverride?: string, sessionIdOverride?: string, personaIdOverride?: string, modelOverride?: MultiModel) => {
-		const textToUse = textOverride !== undefined ? textOverride : input;
-		if ((!textToUse.trim() && attachments.length === 0) || isGenerating || readOnlyMode) return;
+		let textToUse = textOverride !== undefined ? textOverride : input;
+		let autoAttachment: AttachedFile | null = null;
+
+		if (textToUse.length > 20000) {
+			const wordCount = textToUse.trim().split(/\s+/).length;
+			autoAttachment = {
+				id: Math.random().toString(36).substr(2, 9),
+				name: `large-input-${Date.now()}.txt`,
+				type: 'text/plain',
+				content: textToUse,
+				base64: '',
+				statistics: {
+					words: wordCount,
+					pages: -1
+				}
+			};
+
+			if (textOverride === undefined) setInput('');
+			textToUse = `[Large text input converted to attachment]\n\n${textToUse.slice(0, 200)}...`;
+		}
+
+		if ((!textToUse.trim() && attachments.length === 0 && !autoAttachment) || isGenerating || readOnlyMode) return;
 
 		const history = [...messagesRef.current];
 
@@ -1362,7 +1382,7 @@ const App = () => {
 
 			const newSession: ChatSession = {
 				id: activeSessionId!,
-				title: textToUse.slice(0, 30) || 'New Conversation',
+				title: (textToUse || autoAttachment?.name || '').slice(0, 30) || 'New Conversation',
 				timestamp: Date.now(),
 				messages: [],
 				folderId: currentFolderViewId || undefined,
@@ -1376,13 +1396,14 @@ const App = () => {
 			if (currentFolderViewId) setCurrentFolderViewId(null);
 		}
 		const currentAttachments = [...attachments];
+		if (autoAttachment) currentAttachments.push(autoAttachment);
 		let contextAttachments = [...currentAttachments];
 		let omissionNotice = '';
 
 		if (currentAttachments.length > 0) {
 			setIsGenerating(true);
 			try {
-				const processed = await getContentFromDocuments(currentAttachments);
+				const processed = await getContentFromDocuments(currentAttachments.filter(att => att.base64));
 				if (Array.isArray(processed)) {
 					processed.forEach((meta: any) => {
 						const index = currentAttachments.findIndex(att => att.name === meta.filename);
@@ -1396,6 +1417,12 @@ const App = () => {
 					});
 				}
 
+				// Check specifically if the autoAttachment needs caching (since it was skipped by getContentFromDocuments)
+				if (autoAttachment && autoAttachment.statistics.words > 10000 && autoAttachment.content) {
+					await setDocumentCache(autoAttachment.id, autoAttachment.content);
+					autoAttachment.content = undefined;
+				}
+
 				const largeFiles = currentAttachments.filter(att => att.statistics && att.statistics.words && att.statistics.words > 10000);
 				if (largeFiles.length > 0) {
 					await Promise.all(largeFiles.map(async (f) => {
@@ -1405,9 +1432,14 @@ const App = () => {
 						}
 					}));
 
-					contextAttachments = currentAttachments.filter(att => !largeFiles.includes(att));
-					const fileList = largeFiles.map(f => `**${f.name}**`).join(', ');
-					omissionNotice = `> **Document Limit Notice**: The following documents exceed the word limit (10,000 words) and were not added to the conversation context: ${fileList}. They are available for analysis in the **Document Briefcase**.\n\n`;
+					// Ensure we filter out any files (including autoAttachment) that have had their content removed
+					contextAttachments = currentAttachments.filter(att => att.content !== undefined);
+
+					const largeFilesList = currentAttachments.filter(att => att.content === undefined);
+					if (largeFilesList.length > 0) {
+						const fileList = largeFilesList.map(f => `**${f.name}**`).join(', ');
+						omissionNotice = `> **Document Limit Notice**: The following documents exceed the word limit (10,000 words) and were not added to the conversation context: ${fileList}. They are available for analysis in the **Document Briefcase**.\n\n`;
+					}
 				}
 			} catch (err) {
 				console.error("Error processing documents", err);
@@ -1547,12 +1579,6 @@ const App = () => {
 		if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); setIsOutlineOpen(false); }
 	};
 
-
-
-
-
-
-
 	const handleSuggestionClick = (suggestion: typeof SUGGESTIONS[0]) => {
 		if (suggestion.guided) {
 			setInput(suggestion.text);
@@ -1568,10 +1594,6 @@ const App = () => {
 		setBranchingData({ messageId, model, continueWorkflow });
 	};
 
-
-
-
-
 	const initiateDeleteSession = (e: React.MouseEvent, sessionId: string) => {
 		e.stopPropagation();
 		setSessionToDelete(sessionId);
@@ -1585,8 +1607,6 @@ const App = () => {
 	const initiateDeletePersona = (id: string) => {
 		setPersonaToDelete(id);
 	};
-
-
 
 	const loadSession = (session: ChatSession) => {
 		if (editingSessionId) return;

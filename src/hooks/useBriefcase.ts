@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { AttachedFile, Message, ChatSession, DatabaseSource, MultiModel } from '../types/index';
-import { getResultsExtractionsFromDocuments, getResultsFromDocuments, getComparisonFromContent, getResultsClausesFromDocuments, getTranslationFromDocuments, removeDocumentCache, getContentFromDocuments, setDocumentCache } from '../services/conversationalModelService';
+import { getResultsExtractionsFromDocuments, getResultsFromDocuments, getComparisonFromContent, getResultsClausesFromDocuments, getTranslationFromDocuments, removeDocumentCache, getContentFromDocuments, setDocumentCache, getDocumentCache } from '../services/conversationalModelService';
 
 interface UseBriefcaseProps {
 	messages: Message[];
@@ -298,7 +298,24 @@ export const useBriefcase = ({
 
 		const progressInterval = simulateProgress();
 
-		const loadedFiles = allSessionAttachments.filter(a => selectedBriefcaseFiles.has(a.id));
+		const loadedFiles = await Promise.all(allSessionAttachments
+			.filter(a => selectedBriefcaseFiles.has(a.id))
+			.map(async (a) => {
+				const file = { ...a };
+				if (!file.content) {
+					try {
+						const cached = await getDocumentCache(file.id);
+						if (cached && cached.value) {
+							file.content = cached.value;
+						} else if (typeof cached === 'string') {
+							file.content = cached;
+						}
+					} catch (err) {
+						console.error(`Failed to hydrate content for ${file.name}`, err);
+					}
+				}
+				return file;
+			}));
 		const effectiveUser = currentUser || (typeof window !== 'undefined' ? localStorage.getItem('chat_username') : undefined) || undefined;
 
 		try {
