@@ -687,7 +687,7 @@ const App = () => {
 			}, 5000);
 			return () => clearInterval(interval);
 		}
-	}, [currentSessionId, activeGroupId, getCosmosConfig, isGenerating, sessions]);
+	}, [currentSessionId, activeGroupId, getCosmosConfig, isGenerating]);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {

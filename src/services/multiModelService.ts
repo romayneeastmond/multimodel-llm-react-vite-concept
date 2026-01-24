@@ -266,13 +266,37 @@ const callGemini = async (model: string, prompt: string, attachments: AttachedFi
 
 	const currentParts: any[] = [{ text: prompt }];
 
+	const geminiSupportedMimeTypes = [
+		'image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif',
+		'application/pdf'
+	];
+
 	attachments.forEach(file => {
-		currentParts.push({
-			inlineData: {
-				data: file.base64.split(',')[1],
-				mimeType: file.type
+		const isSupported = geminiSupportedMimeTypes.includes(file.type);
+
+		if (isSupported) {
+			currentParts.push({
+				inlineData: {
+					data: file.base64.split(',')[1],
+					mimeType: file.type
+				}
+			});
+		} else {
+			const textContent = decodeFileContent(file);
+			if (textContent) {
+				currentParts.push({
+					text: `\n\n[Attachment: ${file.name}]\n${textContent}`
+				});
+			} else if (file.content) {
+				currentParts.push({
+					text: `\n\n[Attachment: ${file.name}]\n${file.content}`
+				});
+			} else {
+				currentParts.push({
+					text: `\n\n[Attachment: ${file.name}] (Content type ${file.type} not supported for direct analysis)`
+				});
 			}
-		});
+		}
 	});
 
 	contents.push({
