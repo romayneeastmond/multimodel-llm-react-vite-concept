@@ -12,6 +12,10 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC.svg)](https://tailwindcss.com/)
 
 ---
+## Welcome Page Multi-Model Select
+
+<img alt="Image" src="https://github.com/user-attachments/assets/01d67794-0880-4134-8293-38e743dfe231" />
+
 
 ## 🚀 Getting Started
 
@@ -286,7 +290,7 @@ Create multi-step AI workflows without code.
 **Step Types:**
 - **Prompt**: Ask AI a question
 - **File Upload**: Require documents at specific steps
-- **Export**: Generate reports (Text, Word, PDF, Excel)
+- **Export**: Generate reports (Text, Word, PDF, Excel, PowerPoint)
 - **Persona Switch**: Change AI personality mid-workflow
 - **Database Search**: Query CSV or Azure AI Search
 - **Vector Search**: Semantic search with embeddings
