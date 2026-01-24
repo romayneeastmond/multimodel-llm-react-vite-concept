@@ -50,7 +50,7 @@ export interface Message {
 	responses?: Record<string, ModelResponse>;
 	isSystem?: boolean;
 	searchMetadata?: SearchMetadata;
-	workflowExport?: { format: 'text' | 'doc' | 'pdf' | 'excel' };
+	workflowExport?: { format: 'text' | 'doc' | 'pdf' | 'excel' | 'pptx' };
 	workflowStepIndex?: number;
 }
 
@@ -128,7 +128,7 @@ export interface WorkflowStep {
 	prompt?: string;
 	model?: MultiModel;
 	toolIds?: string[];
-	exportFormat?: 'text' | 'doc' | 'pdf' | 'excel';
+	exportFormat?: 'text' | 'doc' | 'pdf' | 'excel' | 'pptx';
 	fileRequirement?: string;
 	personaId?: string;
 	multiStepInstruction?: string;

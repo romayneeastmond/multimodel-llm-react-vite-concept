@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { marked } from 'marked';
 import { CanvasBlock, Message, ModelResponse, ChatSession } from '../types/index';
+import { getContentForWord } from '../services/conversationalModelService';
 
 interface UseCanvasProps {
 	messages: Message[];
@@ -62,12 +63,20 @@ export const useCanvas = ({ messages, currentSessionId, sessions }: UseCanvasPro
 		setIsCanvasOpen(true);
 	}, [messages]);
 
-	const generateWordDoc = useCallback(() => {
-		const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export</title></head><body>`;
-		const footer = "</body></html>";
+	const generateWordDoc = useCallback(async () => {
 		const bodyContent = canvasBlocks.map(block => `<div style="margin-bottom: 20px;">${block.content}</div>`).join('');
-		const sourceHTML = header + bodyContent + footer;
-		const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
+
+		let blob: Blob;
+		const blobResponse = await getContentForWord(bodyContent);
+		if (blobResponse) {
+			blob = blobResponse;
+		} else {
+			const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export</title></head><body>`;
+			const footer = "</body></html>";
+			const sourceHTML = header + bodyContent + footer;
+			blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
+		}
+
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement('a');
 		link.href = url;

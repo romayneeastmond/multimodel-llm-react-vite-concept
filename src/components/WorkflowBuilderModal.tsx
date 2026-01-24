@@ -469,7 +469,7 @@ const WorkflowBuilderModal = ({
 												<div>
 													<label className="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-3">Format of the Output</label>
 													<div className="flex flex-wrap gap-2">
-														{['text', 'doc', 'pdf', 'excel'].map((fmt) => (
+														{['text', 'doc', 'pdf', 'excel', 'pptx'].map((fmt) => (
 															<button
 																key={fmt}
 																onClick={() => updateWorkflowStep(step.id, { exportFormat: fmt as any })}

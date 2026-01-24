@@ -18,7 +18,7 @@ import { MultiModel, Message, AttachedFile, MCPTool, ModelResponse, ChatSession,
 import { copyToClipboard, getCookie, setCookie } from './utils/chatUtils';
 import { generateModelResponse, searchAzureAISearch } from './services/multiModelService';
 import { saveSharedSession, getSharedSession, listSharedSessions, deleteSharedSession, saveFolder, deleteFolder, listFolders, savePersona, deletePersona, listPersonas, listLibraryPrompts, listWorkflows, listDatabaseSources, CosmosConfig } from './services/cosmosService';
-import { getContentFromWebsite, getContentFromDocuments, removeDocumentCache, setDocumentCache } from './services/conversationalModelService';
+import { getContentFromWebsite, getContentFromDocuments, getContentForWord, getContentForPDF, getContentForPowerPoint, removeDocumentCache, setDocumentCache } from './services/conversationalModelService';
 import Admin from './components/Admin';
 import CodeBlock from './components/CodeBlock';
 import PreBlock from './components/PreBlock';
@@ -874,7 +874,7 @@ const App = () => {
 		return groups;
 	};
 
-	const handleExportWorkflowResult = async (format: 'text' | 'doc' | 'pdf' | 'excel' = 'text', exportMsgId?: string) => {
+	const handleExportWorkflowResult = async (format: 'text' | 'doc' | 'pdf' | 'excel' | 'pptx' = 'text', exportMsgId?: string) => {
 		let relevantMessages = [...messages];
 		if (exportMsgId) {
 			const index = relevantMessages.findIndex(m => m.id === exportMsgId);
@@ -905,17 +905,42 @@ const App = () => {
 
 		if (format === 'doc') {
 			const html = await marked.parse(text);
-			const content = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'></head><body>${html}</body></html>`;
-			blob = new Blob(['\ufeff', content], { type: 'application/msword' });
+			const blobResponse = await getContentForWord(html);
+			if (blobResponse) {
+				blob = blobResponse;
+			} else {
+				const content = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'></head><body>${html}</body></html>`;
+				blob = new Blob(['\ufeff', content], { type: 'application/msword' });
+			}
 			filename += '.doc';
 		} else if (format === 'excel') {
 			blob = new Blob([text], { type: 'text/csv' });
 			filename += '.csv';
 		} else if (format === 'pdf') {
-			// TODO: Implement PDF export
 			const html = await marked.parse(text);
-			blob = new Blob([html], { type: 'text/html' });
-			filename += '.html';
+			const blobResponse = await getContentForPDF(html);
+			if (blobResponse) {
+				blob = blobResponse;
+				filename += '.pdf';
+			} else {
+				blob = new Blob([html], { type: 'text/html' });
+				filename += '.html';
+			}
+		} else if (format === 'pptx') {
+			const slideTexts = text.split(/\n-{3,}\n/); // Split by horizontal rule (---)
+			const slidesHTML = await Promise.all(slideTexts.map(async (slideText) => {
+				return await marked.parse(slideText);
+			}));
+
+			const blobResponse = await getContentForPowerPoint(slidesHTML);
+			if (blobResponse) {
+				blob = blobResponse;
+				filename += '.pptx';
+			} else {
+				const html = await marked.parse(text);
+				blob = new Blob([html], { type: 'text/html' });
+				filename += '.html';
+			}
 		} else {
 			blob = new Blob([text], { type: 'text/plain' });
 			filename += '.txt';
@@ -1603,12 +1628,19 @@ const App = () => {
 
 		if (step.type === 'prompt' && step.prompt) {
 			if (step.model) setSelectedModels([step.model]);
-			setInput(step.prompt);
+
+			let effectivePrompt = step.prompt;
+			const nextStep = workflow.steps[stepIndex + 1];
+			if (nextStep && nextStep.type === 'export' && nextStep.exportFormat === 'pptx') {
+				effectivePrompt += "\n\n(IMPORTANT: Please format the output as a presentation. Separate each slide with a horizontal rule '---' on a new line so it can be parsed correctly.)";
+			}
+
+			setInput(effectivePrompt);
 
 			if (step.multiStepInstruction) {
 				setGuidedPromptMessage(step.multiStepInstruction);
 			} else {
-				setTimeout(() => handleSendWithText(step.prompt, sessionId, currentPersonaId, step.model), 50);
+				setTimeout(() => handleSendWithText(effectivePrompt, sessionId, currentPersonaId, step.model), 50);
 			}
 		} else if (step.type === 'file_upload') {
 			setGuidedPromptMessage(step.fileRequirement || "Please upload required files.");

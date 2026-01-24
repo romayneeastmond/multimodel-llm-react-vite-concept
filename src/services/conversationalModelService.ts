@@ -1,6 +1,9 @@
 import { AttachedFile } from '../types/index';
 
 const CONTENT_COMPARISON_ENDPOINT = process.env.CONTENT_COMPARISON_ENDPOINT;
+const CONTENT_EXPORT_PDF = process.env.CONTENT_EXPORT_PDF;
+const CONTENT_EXPORT_POWERPOINT = process.env.CONTENT_EXPORT_POWERPOINT;
+const CONTENT_EXPORT_WORD = process.env.CONTENT_EXPORT_WORD;
 const CONTENT_EXTRACTOR_ENDPOINT = process.env.CONTENT_EXTRACTOR_ENDPOINT;
 const CONTENT_RESULTS_ENDPOINT = process.env.CONTENT_RESULTS_ENDPOINT;
 const CONTENT_RESULTS_CLAUSES_ENDPOINT = process.env.CONTENT_RESULTS_CLAUSES_ENDPOINT;
@@ -35,6 +38,72 @@ export const getComparisonFromContent = async (prompt: string, files: AttachedFi
 	} catch (error: any) {
 		console.error("Content extraction error:", error);
 		return [];
+	}
+};
+
+export const getContentForWord = async (content: string): Promise<any> => {
+	try {
+		const endpoint = `${CONTENT_EXPORT_WORD}`;
+		const response = await fetch(endpoint, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ content })
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP ${response.status}`);
+		}
+
+		return await response.blob();
+	} catch (error: any) {
+		console.error("Content extraction error:", error);
+		return null;
+	}
+};
+
+export const getContentForPDF = async (content: string): Promise<any> => {
+	try {
+		const endpoint = `${CONTENT_EXPORT_PDF}`;
+		const response = await fetch(endpoint, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ content })
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP ${response.status}`);
+		}
+
+		return await response.blob();
+	} catch (error: any) {
+		console.error("Content extraction error:", error);
+		return null;
+	}
+};
+
+export const getContentForPowerPoint = async (slides: string[]): Promise<any> => {
+	try {
+		const endpoint = `${CONTENT_EXPORT_POWERPOINT}`;
+		const response = await fetch(endpoint, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ slides })
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP ${response.status}`);
+		}
+
+		return await response.blob();
+	} catch (error: any) {
+		console.error("Content extraction error:", error);
+		return null;
 	}
 };
 
