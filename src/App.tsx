@@ -331,6 +331,7 @@ const App = () => {
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const messagesRef = useRef<Message[]>([]);
 	const unsavedChangesRef = useRef(false);
+	const lastScheduledSessionRef = useRef<ChatSession | null>(null);
 
 	const handleToolsLoaded = useCallback((serverId: string, tools: MCPTool[]) => {
 		setServerTools(prev => {
@@ -590,6 +591,12 @@ const App = () => {
 			return;
 		}
 
+		if (session === lastScheduledSessionRef.current) {
+			return;
+		}
+
+		lastScheduledSessionRef.current = session;
+
 		if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
 
 		unsavedChangesRef.current = true;
@@ -669,7 +676,7 @@ const App = () => {
 	}, [currentUser, getCosmosConfig]);
 
 	useEffect(() => {
-		const session = sessions.find(s => s.id === currentSessionId);
+		const session = sessionsRef.current.find(s => s.id === currentSessionId);
 		if (currentSessionId && activeGroupId && session?.isShared && session?.groupId === activeGroupId) {
 			const interval = setInterval(() => {
 				if (isGenerating || unsavedChangesRef.current) return;

@@ -11,7 +11,7 @@ This document outlines planned features, improvements, and ideas for the Multi-M
 | ✅ Multiple MCP Tools Per Prompt | Call multiple tools from different MCP servers per a single prompt. |
 | ☐ PDF Document Range Selection | These documents are parsed on a per page basis and page ranges should be selectable 💡. |
 | ☐ Infinite Context Window | Smaller models require context management and a sliding context window is helpful ⭐. |
-| ☐ PDF and PowerPoint Export | Finish the actual PDF export and create a PowerPoint export. |
+| ✅ PDF and PowerPoint Export | Finish the actual PDF export and create a PowerPoint export. |
 | ☐ Additional Database Sources | Manual, CSV, Azure AI Search are currently supported, needs more sources. |
 | ☐ Search Document Briefcase | Unlimited number of documents per conversation needs a way to filter by document name. |
 | ☐ Resource File Support | Remove all hard coded output and move to resource files for i18n. |
