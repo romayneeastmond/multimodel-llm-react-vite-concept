@@ -434,6 +434,40 @@ const executeMCPTool = async (tool: MCPTool, args: any): Promise<string> => {
 	}
 };
 
+const filterRelevantTools = (prompt: string, tools: MCPTool[]): MCPTool[] => {
+	if (tools.length === 0) return [];
+
+	const promptLower = prompt.toLowerCase();
+
+	const toolActionKeywords = [
+		'search', 'find', 'lookup', 'query', 'get', 'fetch', 'retrieve',
+		'check', 'analyze', 'scan', 'read', 'list', 'show', 'display',
+		'database', 'db', 'index', 'document', 'file', 'data'
+	];
+
+	const hasToolIntent = toolActionKeywords.some(keyword => promptLower.includes(keyword));
+
+	if (!hasToolIntent) {
+		return [];
+	}
+
+	const relevantTools = tools.filter(tool => {
+		const toolSearchText = [
+			tool.name,
+			tool.description,
+			tool.server,
+			...(tool.inputSchema?.properties ? Object.keys(tool.inputSchema.properties) : [])
+		].join(' ').toLowerCase();
+		const promptWords = promptLower
+			.split(/\s+/)
+			.filter(word => word.length > 3);
+
+		return promptWords.some(word => toolSearchText.includes(word));
+	});
+
+	return relevantTools;
+};
+
 const getAzureEmbedding = async (model: string, prompt: string): Promise<number[]> => {
 	if (!AZURE_API_KEY || !AZURE_ENDPOINT) {
 		throw new Error("Azure API Key or Endpoint not configured.");
@@ -535,7 +569,11 @@ export const getAzureIndexCount = async (endpoint: string, key: string, indexNam
 };
 
 export const generateModelResponse = async (model: MultiModel, prompt: string, attachments: AttachedFile[], activeTools: MCPTool[], systemInstruction?: string, history: Message[] = []): Promise<string> => {
-	const initialPrompt = activeTools.length > 0 ? appendToolsToPrompt(prompt, activeTools) : prompt;
+	// Filter tools to only include those relevant to the current prompt
+	const relevantTools = filterRelevantTools(prompt, activeTools);
+
+	// Only append tools if there are relevant ones
+	const initialPrompt = relevantTools.length > 0 ? appendToolsToPrompt(prompt, relevantTools) : prompt;
 
 	let currentPrompt = initialPrompt;
 	let combinedResponse = "";
@@ -546,7 +584,7 @@ export const generateModelResponse = async (model: MultiModel, prompt: string, a
 		for (let i = 0; i < MAX_LOOPS; i++) {
 			let textResponse = await callModel(model, currentPrompt, i === 0 ? attachments : [], systemInstruction, history);
 
-			if (activeTools.length > 0) {
+			if (relevantTools.length > 0) {
 				try {
 					const codeBlockRegex = /```json\s*([\s\S]*?)\s*```/gi;
 					const matches = [...textResponse.matchAll(codeBlockRegex)];
@@ -569,7 +607,7 @@ export const generateModelResponse = async (model: MultiModel, prompt: string, a
 								for (const call of calls) {
 									if (call.tool && call.arguments) {
 										const [serverName, toolName] = call.tool.includes('.') ? call.tool.split('.') : [null, call.tool];
-										const tool = activeTools.find(t => t.name === toolName || (serverName && t.server === serverName && t.name === toolName));
+										const tool = relevantTools.find(t => t.name === toolName || (serverName && t.server === serverName && t.name === toolName));
 
 										if (tool) {
 											parsedPromises.push(
