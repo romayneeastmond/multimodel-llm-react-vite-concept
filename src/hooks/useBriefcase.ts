@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { AttachedFile, Message, ChatSession, DatabaseSource, MultiModel } from '../types/index';
-import { getResultsExtractionsFromDocuments, getResultsFromDocuments, getComparisonFromContent, getResultsClausesFromDocuments, getTranslationFromDocuments, removeDocumentCache } from '../services/conversationalModelService';
+import { getResultsExtractionsFromDocuments, getResultsFromDocuments, getComparisonFromContent, getResultsClausesFromDocuments, getTranslationFromDocuments, removeDocumentCache, getContentFromDocuments, setDocumentCache } from '../services/conversationalModelService';
 
 interface UseBriefcaseProps {
 	messages: Message[];
@@ -112,8 +112,39 @@ export const useBriefcase = ({
 			});
 		});
 
-		Promise.all(promises).then(() => {
+		Promise.all(promises).then(async () => {
 			if (newAttachments.length > 0) {
+				let omissionNotice = '';
+				try {
+					const processed = await getContentFromDocuments(newAttachments);
+					if (Array.isArray(processed)) {
+						processed.forEach((meta: any) => {
+							const index = newAttachments.findIndex(att => att.name === meta.filename);
+							if (index !== -1) {
+								newAttachments[index] = {
+									...newAttachments[index],
+									content: meta.content,
+									statistics: meta.statistics
+								};
+							}
+						});
+					}
+				} catch (err) {
+					console.error("Error processing documents", err);
+				}
+
+				const largeFiles = newAttachments.filter(att => att.statistics && att.statistics.words && att.statistics.words > 10000);
+				if (largeFiles.length > 0) {
+					await Promise.all(largeFiles.map(async (f) => {
+						if (f.content) {
+							await setDocumentCache(f.id, f.content);
+							f.content = undefined;
+						}
+					}));
+					const fileList = largeFiles.map(f => `**${f.name}**`).join(', ');
+					omissionNotice = `\n\n> **Document Limit Notice**: The following documents exceed the word limit (10,000 words) and were not added to the conversation context: ${fileList}. They are available for analysis in the **Document Briefcase**.`;
+				}
+
 				const effectiveUser = currentUser || (typeof window !== 'undefined' ? localStorage.getItem('chat_username') : undefined) || undefined;
 				const fileCount = newAttachments.length;
 
@@ -121,7 +152,7 @@ export const useBriefcase = ({
 					id: Date.now().toString(),
 					role: 'user',
 					isSystem: true,
-					content: `**Document Briefcase Upload**\nAdded ${fileCount} ${fileCount === 1 ? 'file' : 'files'} to the conversation.`,
+					content: `**Document Briefcase Upload**\nAdded ${fileCount} ${fileCount === 1 ? 'file' : 'files'} to the conversation.${omissionNotice}`,
 					userName: userDisplayName || effectiveUser,
 					userId: effectiveUser,
 					attachments: newAttachments
@@ -177,8 +208,39 @@ export const useBriefcase = ({
 			});
 		});
 
-		Promise.all(promises).then(() => {
+		Promise.all(promises).then(async () => {
 			if (newAttachments.length > 0) {
+				let omissionNotice = '';
+				try {
+					const processed = await getContentFromDocuments(newAttachments);
+					if (Array.isArray(processed)) {
+						processed.forEach((meta: any) => {
+							const index = newAttachments.findIndex(att => att.name === meta.filename);
+							if (index !== -1) {
+								newAttachments[index] = {
+									...newAttachments[index],
+									content: meta.content,
+									statistics: meta.statistics
+								};
+							}
+						});
+					}
+				} catch (err) {
+					console.error("Error processing documents", err);
+				}
+
+				const largeFiles = newAttachments.filter(att => att.statistics && att.statistics.words && att.statistics.words > 10000);
+				if (largeFiles.length > 0) {
+					await Promise.all(largeFiles.map(async (f) => {
+						if (f.content) {
+							await setDocumentCache(f.id, f.content);
+							f.content = undefined;
+						}
+					}));
+					const fileList = largeFiles.map(f => `**${f.name}**`).join(', ');
+					omissionNotice = `\n\n> **Document Limit Notice**: The following documents exceed the word limit (10,000 words) and were not added to the conversation context: ${fileList}. They are available for analysis in the **Document Briefcase**.`;
+				}
+
 				const effectiveUser = currentUser || (typeof window !== 'undefined' ? localStorage.getItem('chat_username') : undefined) || undefined;
 				const fileCount = newAttachments.length;
 
@@ -186,7 +248,7 @@ export const useBriefcase = ({
 					id: Date.now().toString(),
 					role: 'user',
 					isSystem: true,
-					content: `**Document Briefcase Upload**\nAdded ${fileCount} ${fileCount === 1 ? 'file' : 'files'} to the conversation.`,
+					content: `**Document Briefcase Upload**\nAdded ${fileCount} ${fileCount === 1 ? 'file' : 'files'} to the conversation.${omissionNotice}`,
 					userName: userDisplayName || effectiveUser,
 					userId: effectiveUser,
 					attachments: newAttachments

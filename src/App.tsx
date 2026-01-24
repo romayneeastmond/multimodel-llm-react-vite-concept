@@ -866,15 +866,13 @@ const App = () => {
 		if (buckets.today.length) groups.push({ title: 'Today', sessions: buckets.today });
 		if (buckets.yesterday.length) groups.push({ title: 'Yesterday', sessions: buckets.yesterday });
 		if (buckets.lastWeek.length) groups.push({ title: 'Last Week', sessions: buckets.lastWeek });
-		if (buckets.lastMonth.length) groups.push({ title: 'Last Month', sessions: buckets.lastMonth });
-		if (buckets.thirtyDays.length) groups.push({ title: '30 Days Ago', sessions: buckets.thirtyDays });
-		if (buckets.sixtyDays.length) groups.push({ title: '60 Days Ago', sessions: buckets.sixtyDays });
+		if (buckets.lastMonth.length) groups.push({ title: 'Previous 30 Days', sessions: buckets.lastMonth });
+		if (buckets.thirtyDays.length) groups.push({ title: 'Previous 60 Days', sessions: buckets.thirtyDays });
+		if (buckets.sixtyDays.length) groups.push({ title: 'Earlier this Year', sessions: buckets.sixtyDays });
 		if (buckets.older.length) groups.push({ title: 'Previous Years', sessions: buckets.older });
 
 		return groups;
 	};
-
-
 
 	const handleExportWorkflowResult = async (format: 'text' | 'doc' | 'pdf' | 'excel' = 'text', exportMsgId?: string) => {
 		let relevantMessages = [...messages];
