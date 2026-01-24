@@ -1,0 +1,7 @@
+{
+	"name": "Multi-Model Orchestrator Demo",
+	"description": "A sophisticated multi-model chat interface allowing users to prompt multiple AI models simultaneously, attach documents, and Model Context Protocol (MCP) tool integration.",
+	"requestFramePermissions": [
+		"microphone"
+	]
+}

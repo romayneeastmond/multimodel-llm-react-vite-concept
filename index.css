@@ -1,0 +1,45 @@
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes rotate-glow {
+  to {
+    --angle: 360deg;
+  }
+}
+
+.idle-glow {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  isolation: isolate;
+  z-index: 0;
+}
+
+.idle-glow::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  z-index: -2;
+  background: conic-gradient(from var(--angle), transparent 20%, var(--accent) 50%, transparent 80%);
+  border-radius: inherit;
+  animation: rotate-glow 4s linear infinite;
+  opacity: 0.8;
+}
+
+.idle-glow::before {
+  filter: blur(8px);
+}
+
+.idle-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: inherit;
+}
+

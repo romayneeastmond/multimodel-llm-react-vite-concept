@@ -1,0 +1,201 @@
+# Multi-Model Orchestrator License
+
+## Non-Commercial Source Available License v1.0
+
+Copyright (c) 2026 Romayne Eastmond
+
+---
+
+## 1. Definitions
+
+**"Software"** means the Multi-Model Orchestrator application, including all source code, documentation, and associated files.
+
+**"Commercial Use"** means any use of the Software that:
+- Generates revenue, directly or indirectly
+- Is performed by or on behalf of a for-profit organization
+- Is intended for commercial advantage or monetary compensation
+- Involves providing the Software as a service to third parties for a fee
+- Is used in production environments for business purposes
+
+**"Non-Commercial Use"** means use that is:
+- Personal and private
+- Educational (including academic research and teaching)
+- For open-source projects with non-commercial licenses
+- For evaluation and testing purposes
+- For charitable and non-profit organizations (501(c)(3) or equivalent)
+
+---
+
+## 2. Grant of Rights
+
+### 2.1 Non-Commercial Use
+
+Subject to the terms and conditions of this License, the copyright holder grants you a worldwide, royalty-free, non-exclusive license to:
+
+- ✅ **Use** the Software for Non-Commercial purposes
+- ✅ **Fork** and create derivative works
+- ✅ **Modify** the source code
+- ✅ **Distribute** copies for Non-Commercial purposes
+- ✅ **Study** and learn from the code
+- ✅ **Contribute** improvements back to the project
+
+### 2.2 Attribution Required
+
+You must:
+- Retain all copyright notices
+- Include a copy of this license
+- Credit the original author (Romayne Eastmond)
+- Clearly state any modifications made
+
+---
+
+## 3. Commercial Use Restriction
+
+### 3.1 Commercial License Required
+
+Any **Commercial Use** of the Software requires a separate commercial license from the copyright holder.
+
+Commercial uses include, but are not limited to:
+- ❌ Deploying the Software for business operations
+- ❌ Offering the Software as a hosted service (SaaS)
+- ❌ Integrating the Software into commercial products
+- ❌ Using the Software to generate revenue
+- ❌ White-labeling or rebranding for commercial distribution
+- ❌ Internal use by for-profit companies (over 5 employees)
+
+### 3.2 Obtaining a Commercial License
+
+To obtain a commercial license:
+- **Email**: [Your Email Here]
+- **Website**: [Your Website Here]
+- **Subject Line**: "Multi-Model Orchestrator - Commercial License Inquiry"
+
+Commercial licenses are negotiated on a case-by-case basis and may include:
+- Per-deployment pricing
+- Revenue sharing agreements
+- Enterprise support options
+- Custom features and integrations
+
+---
+
+## 4. Limitations and Disclaimer
+
+### 4.1 No Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+
+### 4.2 Limitation of Liability
+
+IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+### 4.3 No Patent Grant
+
+This license does not grant any rights in the patents, trademarks, service marks, or logos of the copyright holder.
+
+---
+
+## 5. Contributions
+
+### 5.1 Contributor License
+
+By submitting a contribution (pull request, issue, or other submission), you agree that:
+- You grant the copyright holder a perpetual, worldwide, royalty-free license to use your contribution
+- Your contribution may be included in both the non-commercial and commercial versions
+- You retain copyright to your contribution
+- You confirm you have the right to grant these licenses
+
+---
+
+## 6. Termination
+
+### 6.1 Automatic Termination
+
+This license automatically terminates if you:
+- Use the Software for Commercial purposes without a commercial license
+- Violate any terms of this license
+- Remove or alter copyright notices
+- Fail to include this license with distributions
+
+### 6.2 Effect of Termination
+
+Upon termination, you must:
+- Immediately cease all use of the Software
+- Delete or destroy all copies in your possession
+- Remove any deployed instances
+
+---
+
+## 7. Special Exceptions
+
+### 7.1 Small Business Exception
+
+Organizations with **fewer than 5 full-time employees** and **annual revenue under $100,000 USD** may use the Software for internal business purposes under this non-commercial license.
+
+### 7.2 Open Source Projects
+
+Use in open-source projects is permitted if:
+- The project itself is non-commercial
+- The project uses a permissive or copyleft open-source license
+- Attribution is provided
+
+### 7.3 Educational Institutions
+
+Accredited educational institutions may use the Software for:
+- Teaching and classroom demonstrations
+- Student projects and assignments
+- Academic research (non-commercial)
+
+---
+
+## 8. Governing Law
+
+This License shall be governed by and construed in accordance with the laws of [Your Jurisdiction], without regard to its conflict of law provisions.
+
+---
+
+## 9. Updates to License
+
+The copyright holder reserves the right to:
+- Release future versions under different licenses
+- Offer dual-licensing options
+- Change terms for new releases (existing releases remain under their original license)
+
+---
+
+## 10. Questions and Contact
+
+For questions about:
+- **Commercial licensing**: [Your Email]
+- **Technical support**: Open an issue on GitHub
+- **General inquiries**: [Your Email]
+
+---
+
+## Summary (TL;DR)
+
+✅ **You CAN:**
+- Use for personal projects
+- Learn and study the code
+- Fork and modify
+- Use in open-source projects
+- Use for education and research
+- Contribute improvements
+
+❌ **You CANNOT:**
+- Use in commercial products
+- Offer as a paid service (SaaS)
+- Deploy for business without a license
+- Remove copyright notices
+
+💰 **Need Commercial Use?**
+Contact [Your Email] for licensing options.
+
+---
+
+**License Version**: 1.0  
+**Effective Date**: January 22, 2026  
+**Copyright Holder**: Romayne Eastmond  
+
+---
+
+*This is a source-available license, not an open-source license as defined by the Open Source Initiative (OSI). It allows viewing and learning from the code while restricting commercial use.*

@@ -1,0 +1,163 @@
+{
+	"database": {
+		"id": "ConversationDB",
+		"throughput": "Autoscale (4000 RU/s)",
+		"description": "Primary database for the Multi-Model Orchestrator."
+	},
+	"containers": [
+		{
+			"id": "Conversations",
+			"partitionKey": "/userId",
+			"indexingPolicy": {
+				"indexingMode": "consistent",
+				"includedPaths": [
+					{
+						"path": "/*"
+					}
+				],
+				"excludedPaths": [
+					{
+						"path": "/messages/[]/content/?"
+					},
+					{
+						"path": "/messages/[]/responses/*"
+					}
+				]
+			},
+			"description": "Stores ChatSessions and their nested Messages. Large message contents are excluded from indexing to save RU/s."
+		},
+		{
+			"id": "Resources",
+			"partitionKey": "/userId",
+			"indexingPolicy": {
+				"indexingMode": "consistent",
+				"includedPaths": [
+					{
+						"path": "/*"
+					}
+				]
+			},
+			"description": "Stores Folders, Personas, LibraryPrompts, and Workflows using a 'type' discriminator."
+		},
+		{
+			"id": "DataSources",
+			"partitionKey": "/userId",
+			"indexingPolicy": {
+				"indexingMode": "consistent",
+				"includedPaths": [
+					{
+						"path": "/*"
+					}
+				],
+				"excludedPaths": [
+					{
+						"path": "/content/?"
+					}
+				]
+			},
+			"description": "Stores DatabaseSource metadata and raw content. Content is excluded from indexing."
+		}
+	],
+	"item_schemas": {
+		"ChatSession": {
+			"id": "uuid",
+			"userId": "string (Partition Key)",
+			"type": "chat_session",
+			"title": "string",
+			"timestamp": "number (unix epoch)",
+			"folderId": "string (optional)",
+			"personaId": "string (optional)",
+			"workflowId": "string (optional)",
+			"currentWorkflowStep": "number (optional)",
+			"messages": [
+				{
+					"id": "string",
+					"role": "user | assistant",
+					"content": "string",
+					"responses": {
+						"modelId": {
+							"model": "GeminiModel",
+							"text": "string",
+							"status": "loading | success | error",
+							"versions": [
+								{
+									"text": "string",
+									"timestamp": "number",
+									"label": "string"
+								}
+							],
+							"currentVersionIndex": "number"
+						}
+					},
+					"attachments": [
+						{
+							"id": "string",
+							"name": "string",
+							"type": "string",
+							"base64": "string"
+						}
+					]
+				}
+			]
+		},
+		"Folder": {
+			"id": "uuid",
+			"userId": "string (Partition Key)",
+			"type": "folder",
+			"name": "string",
+			"createdAt": "number"
+		},
+		"Persona": {
+			"id": "uuid",
+			"userId": "string (Partition Key)",
+			"type": "persona",
+			"name": "string",
+			"description": "string",
+			"systemInstruction": "string",
+			"multiStepInstruction": "string"
+		},
+		"LibraryPrompt": {
+			"id": "uuid",
+			"userId": "string (Partition Key)",
+			"type": "library_prompt",
+			"title": "string",
+			"content": "string",
+			"category": "string",
+			"multiStepInstruction": "string",
+			"isDefault": "boolean"
+		},
+		"Workflow": {
+			"id": "uuid",
+			"userId": "string (Partition Key)",
+			"type": "workflow",
+			"name": "string",
+			"description": "string",
+			"steps": [
+				{
+					"id": "string",
+					"type": "prompt | file_upload | mcp_tool | export | persona",
+					"prompt": "string",
+					"model": "GeminiModel",
+					"toolIds": [
+						"string"
+					],
+					"exportFormat": "text | doc | pdf | excel",
+					"fileRequirement": "string",
+					"personaId": "string",
+					"multiStepInstruction": "string"
+				}
+			]
+		},
+		"DatabaseSource": {
+			"id": "uuid",
+			"userId": "string (Partition Key)",
+			"type": "database_source",
+			"name": "string",
+			"sourceType": "csv_upload | manual_entry",
+			"content": "string (Full CSV/Text content)",
+			"rowCount": "number",
+			"fileName": "string",
+			"createdAt": "number"
+		}
+	}
+}
