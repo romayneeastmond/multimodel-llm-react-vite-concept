@@ -41,7 +41,37 @@ location            = "eastus"
 environment         = "dev"
 enable_free_tier    = true                 # Only 1 per subscription
 max_throughput      = 4000
+
+# MSAL Authentication (Optional)
+enable_msal             = true
+app_name                = "Multi-Model Orchestrator"
+redirect_uris           = ["http://localhost:3000", "https://yourdomain.com"]
+supported_account_types = "AzureADMyOrg"  # Single tenant
 ```
+
+### 2.5. (Optional) Enable MSAL Authentication
+
+If you want to enable Microsoft Entra ID (Azure AD) authentication:
+
+1. Set `enable_msal = true` in `terraform.tfvars`
+2. Configure redirect URIs for your environment
+3. Choose account type:
+   - `AzureADMyOrg` - Single tenant (your organization only)
+   - `AzureADMultipleOrgs` - Multi-tenant (any Azure AD organization)
+   - `AzureADandPersonalMicrosoftAccount` - Any Microsoft account
+
+**What Gets Created:**
+- Azure AD Application Registration
+- Service Principal
+- Required API permissions (User.Read)
+- SPA (Single Page Application) configuration
+
+**Outputs:**
+After deployment, Terraform will output the required values for your `.env.local`:
+```bash
+terraform output env_variables
+```
+
 
 ### 2. Initialize Terraform
 

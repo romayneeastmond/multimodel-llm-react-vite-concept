@@ -16,3 +16,20 @@ enable_free_tier = false
 # Maximum autoscale throughput (RU/s)
 # Recommended: 4000 for production, 1000 for dev/testing
 max_throughput = 4000
+
+# ============================================
+# MSAL Authentication (Optional)
+# ============================================
+# Enable MSAL and create Azure AD app registration
+enable_msal = false
+
+# Application name in Azure AD
+app_name = "Multi-Model Orchestrator"
+
+# Redirect URIs for authentication
+# Update with your production URLs
+redirect_uris = ["http://localhost:3000"]
+
+# Who can use this application
+# Options: AzureADMyOrg (single tenant), AzureADMultipleOrgs, AzureADandPersonalMicrosoftAccount
+supported_account_types = "AzureADMyOrg"

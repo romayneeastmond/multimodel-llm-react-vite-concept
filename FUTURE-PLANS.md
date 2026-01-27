@@ -34,5 +34,3 @@ Generally add innovative features to the user interface and experience as other 
 ---
 
 **Built with ❤️ and vibes by [Romayne Eastmond](https://github.com/romayneeastmond) who believes AI should be flexible, collaborative, and powerful.**
-
-
