@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useMsal, useIsAuthenticated } from "@azure/msal-react";
 import { useWorkflowBuilder } from './hooks/useWorkflowBuilder';
 import { useDatabaseSources } from './hooks/useDatabaseSources';
 import { usePromptLibrary } from './hooks/usePromptLibrary';
@@ -11,7 +12,7 @@ import {
 	Send, Paperclip, Cpu, ChevronDown, ChevronRight, Box, Check, FileText, X, Bot, Menu, SquarePen, ArrowDown, Copy, Download, CheckCheck, Share, Trash2,
 	Edit2, FileJson, Folder as FolderIcon, FolderOpen, FolderPlus, Plus, MessageSquare, Sparkles, RefreshCw, Maximize2, Minimize2, List, History, Mic,
 	Layout, Sun, Moon, UserCircle, Book, Search, PlusCircle, Heart, Workflow as WorkflowIcon, Activity, UploadCloud, FileDown, Database, ShieldCheck, Briefcase,
-	Loader2, Users
+	Loader2, Users, LogOut
 } from 'lucide-react';
 import { AVAILABLE_MODELS, MCP_SERVER_CONFIGS, DEFAULT_PERSONAS, DEFAULT_LIBRARY_PROMPTS, SUGGESTIONS } from './config/constants';
 import { MultiModel, Message, AttachedFile, MCPTool, ModelResponse, ChatSession, Folder, Persona, LibraryPrompt, Workflow, DatabaseSource } from './types/index';
@@ -36,8 +37,25 @@ import DatabaseSourcesModal from './components/DatabaseSourcesModal';
 import PromptLibraryModal from './components/PromptLibraryModal';
 import BriefcasePanel from './components/BriefcasePanel';
 import CanvasEditor from './components/CanvasEditor';
+import { loginRequest } from './config/authConfig';
+
+const useSafeMsal = () => {
+	if (process.env.USE_MSAL === 'true') {
+		return useMsal();
+	}
+	return { instance: null, accounts: [], inProgress: "none" };
+};
+
+const useSafeIsAuthenticated = () => {
+	if (process.env.USE_MSAL === 'true') {
+		return useIsAuthenticated();
+	}
+	return false;
+};
 
 const App = () => {
+	const { instance, accounts } = useSafeMsal() as any;
+	const isAuthenticated = useSafeIsAuthenticated();
 	const [currentView, setCurrentView] = useState<'chat' | 'admin'>('chat');
 	const [sessions, setSessions] = useState<ChatSession[]>([]);
 	const [folders, setFolders] = useState<Folder[]>([]);
@@ -50,7 +68,20 @@ const App = () => {
 	});
 
 	const [workflows, setWorkflows] = useState<Workflow[]>([]);
-	const [currentUser, setCurrentUser] = useState<string>('default_user');
+
+	const [currentUser, setCurrentUser] = useState<string>(() => {
+		if (process.env.USE_MSAL === 'true') {
+			if (typeof window !== 'undefined') {
+				const storedUsername = localStorage.getItem('chat_username');
+				if (storedUsername && storedUsername !== 'default_user') {
+					return storedUsername;
+				}
+			}
+			return '';
+		}
+
+		return 'default_user';
+	});
 
 	const {
 		isWorkflowBuilderOpen,
@@ -145,7 +176,12 @@ const App = () => {
 	const [guidedPromptMessage, setGuidedPromptMessage] = useState<string | null>(null);
 	const [isListening, setIsListening] = useState(false);
 
-	const [landingView, setLandingView] = useState<'home' | 'welcome'>('home');
+	const [landingView, setLandingView] = useState<'home' | 'welcome'>(() => {
+		if (typeof window !== 'undefined' && process.env.USE_MSAL === 'true') {
+			return 'welcome';
+		}
+		return 'home';
+	});
 	const [personas, setPersonas] = useState<Persona[]>([]);
 	const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(null);
 	const [isPersonaModalOpen, setIsPersonaModalOpen] = useState(false);
@@ -351,6 +387,32 @@ const App = () => {
 	}, [theme]);
 
 	useEffect(() => {
+		if (process.env.USE_MSAL === 'true' && isAuthenticated && accounts.length > 0) {
+			const account = accounts[0];
+			const username = account.name || account.username || 'azure_user';
+			if (username !== currentUser) {
+				setCurrentUser(username);
+				if (typeof window !== 'undefined') {
+					localStorage.setItem('chat_username', username);
+				}
+			}
+		}
+	}, [isAuthenticated, accounts, currentUser]);
+
+	useEffect(() => {
+		if (process.env.USE_MSAL === 'true' && typeof window !== 'undefined') {
+			const storedUsername = localStorage.getItem('chat_username');
+			if (storedUsername === 'default_user') {
+				localStorage.removeItem('chat_username');
+
+				if (currentUser === 'default_user') {
+					setCurrentUser('');
+				}
+			}
+		}
+	}, []);
+
+	useEffect(() => {
 		messagesRef.current = messages;
 	}, [messages]);
 
@@ -363,6 +425,12 @@ const App = () => {
 			));
 		}
 	}, [messages, currentSessionId, readOnlyMode]);
+
+	useEffect(() => {
+		if (process.env.USE_MSAL === 'true' && isAuthenticated && !currentSessionId && !currentFolderViewId) {
+			setLandingView('welcome');
+		}
+	}, [isAuthenticated, currentSessionId, currentFolderViewId]);
 
 	useEffect(() => {
 		if (!currentFolderViewId) scrollToBottom();
@@ -409,6 +477,10 @@ const App = () => {
 			if (!config.endpoint || !config.key) return;
 			if (!currentUser) return;
 
+			setCurrentSessionId(null);
+			setMessages([]);
+			setCurrentFolderViewId(null);
+
 			try {
 				const [fetchedFolders, fetchedPersonas, fetchedLibrary, fetchedWorkflows, fetchedDbSources, mySessions] = await Promise.all([
 					listFolders(config, currentUser),
@@ -447,6 +519,12 @@ const App = () => {
 
 			} catch (error) {
 				console.error("Failed to load data from Cosmos DB:", error);
+				setFolders([]);
+				setPersonas(DEFAULT_PERSONAS);
+				setLibraryPrompts(DEFAULT_LIBRARY_PROMPTS);
+				setWorkflows([]);
+				setDatabaseSources([]);
+				setSessions([]);
 
 				loadedUserRef.current = null;
 			}
@@ -706,8 +784,6 @@ const App = () => {
 		return () => document.removeEventListener('mousedown', handleClickOutside);
 	}, []);
 
-
-
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
 		const shareId = params.get('share');
@@ -763,8 +839,6 @@ const App = () => {
 		if (window.innerWidth < 768) setIsSidebarOpen(false);
 	};
 
-
-
 	const confirmDeletePersona = () => {
 		if (personaToDelete) {
 			const config = getCosmosConfig();
@@ -813,6 +887,236 @@ const App = () => {
 			setFolders(prev => prev.filter(f => f.id !== folderToDelete));
 			if (currentFolderViewId === folderToDelete) setCurrentFolderViewId(null);
 			setFolderToDelete(null);
+		}
+	};
+
+	const executeWorkflowStep = async (sessionId: string, workflowId: string, stepIndex: number, currentPersonaId?: string, queryOverride?: string) => {
+		const workflow = workflowsRef.current.find(w => w.id === workflowId);
+		if (!workflow) return;
+
+		const effectiveUser = currentUser || (typeof window !== 'undefined' ? localStorage.getItem('chat_username') : undefined) || undefined;
+
+		const step = workflow.steps[stepIndex];
+		if (!step) {
+			setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, currentWorkflowStep: null } : s));
+			setGuidedPromptMessage(null);
+			return;
+		}
+
+		setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, currentWorkflowStep: stepIndex } : s));
+
+		if (step.type === 'prompt' && step.prompt) {
+			if (step.model) setSelectedModels([step.model]);
+
+			let effectivePrompt = step.prompt;
+			const nextStep = workflow.steps[stepIndex + 1];
+			if (nextStep && nextStep.type === 'export' && nextStep.exportFormat === 'pptx') {
+				effectivePrompt += "\n\n(IMPORTANT: Please format the output as a presentation. Separate each slide with a horizontal rule '---' on a new line so it can be parsed correctly.)";
+			}
+
+			setInput(effectivePrompt);
+
+			if (step.multiStepInstruction) {
+				setGuidedPromptMessage(step.multiStepInstruction);
+			} else {
+				setTimeout(() => handleSendWithText(effectivePrompt, sessionId, currentPersonaId, step.model), 50);
+			}
+		} else if (step.type === 'file_upload') {
+			setGuidedPromptMessage(step.fileRequirement || "Please upload required files.");
+		} else if (step.type === 'mcp_tool') {
+			const allTools = Object.values(serverToolsRef.current).flat();
+			const toolsToEnable = allTools.filter(t => step.toolIds?.includes(t.id));
+			setSelectedTools(toolsToEnable);
+			setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 50);
+		} else if (step.type === 'export') {
+			const exportMsg: Message = {
+				id: Date.now().toString(),
+				role: 'user',
+				isSystem: true,
+				content: `**Workflow Export Ready**\n\nThe current context has been prepared for export in **${step.exportFormat?.toUpperCase() || 'TEXT'}** format. Click the button below to download the file.`,
+				workflowExport: { format: step.exportFormat || 'text' },
+				userName: userDisplayName || effectiveUser,
+				userId: effectiveUser,
+				workflowStepIndex: stepIndex
+			};
+			setMessages(prev => {
+				const last = prev[prev.length - 1];
+				if (last && last.workflowExport && last.workflowExport.format === (step.exportFormat || 'text')) {
+					return prev;
+				}
+				return [...prev, exportMsg];
+			});
+			setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: [...s.messages, exportMsg] } : s));
+			setGuidedPromptMessage(null);
+			setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 50);
+		} else if (step.type === 'persona') {
+			setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, personaId: step.personaId } : s));
+			setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, step.personaId), 50);
+		} else if (step.type === 'database_search' || step.type === 'vector_search') {
+			const dbSource = databaseSourcesRef.current.find(db => db.id === step.databaseId);
+
+			if (dbSource) {
+				const query = queryOverride || step.searchQuery || '';
+
+				if (!query) {
+					setGuidedPromptMessage(`Workflow Search: Please enter search query for ${dbSource.name}`);
+					return;
+				}
+
+				setGuidedPromptMessage(`Searching ${dbSource.name} for "${query}"...`);
+
+				let filteredRecords: { content: string; title?: string }[] = [];
+
+				if (dbSource.type === 'azure_ai_search') {
+					try {
+						setIsGenerating(true);
+						filteredRecords = await searchAzureAISearch(
+							dbSource.azureEndpoint!,
+							dbSource.azureSearchKey!,
+							dbSource.azureIndexName!,
+							dbSource.azureContentField!,
+							dbSource.azureVectorField!,
+							dbSource.azureEmbeddingModel!,
+							query,
+							dbSource.azureTitleField
+						);
+						setIsGenerating(false);
+					} catch (err: any) {
+						setIsGenerating(false);
+						console.error("Azure Search error:", err);
+						setGuidedPromptMessage(`Azure Search Error: ${err.message}`);
+						setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 3000);
+						return;
+					}
+				} else {
+					const allRows = dbSource.content.split('\n').filter(line => line.trim());
+					const dataRows = dbSource.type === 'csv_upload' ? allRows.slice(1) : allRows;
+					filteredRecords = dataRows.filter(row => row.toLowerCase().includes(query.toLowerCase())).map(row => ({ content: row }));
+				}
+
+				const searchResultsMessage: Message = {
+					id: Date.now().toString(),
+					role: 'user',
+					isSystem: true,
+					content: `**Database Search Results**\nSource: ${dbSource.name}\nQuery: "${query}"\nFound ${filteredRecords.length} records. These are now part of the conversation context.`,
+					userName: userDisplayName || effectiveUser,
+					userId: effectiveUser,
+					searchMetadata: {
+						databaseId: step.databaseId!,
+						searchQuery: query,
+						offset: 10,
+						totalResults: filteredRecords.length
+					},
+					workflowStepIndex: stepIndex
+				};
+
+				if (filteredRecords.length > 0) {
+					const sanitizedRecords = filteredRecords.map(r => {
+						let content = r.content.replace(/[\r\n\t]+/g, ' ').trim();
+						const firstCapIndex = content.search(/[A-Z]/);
+						if (firstCapIndex !== -1) {
+							content = content.slice(firstCapIndex);
+						}
+						return { ...r, content };
+					});
+
+					const hasTitles = sanitizedRecords.some(r => r.title);
+					if (hasTitles) {
+						searchResultsMessage.content += `\n\n| &nbsp; | Source Document | Record Content |\n| :--- | :--- | :--- |\n`;
+						sanitizedRecords.slice(0, 10).forEach((r, i) => {
+							searchResultsMessage.content += `| ${i + 1} | **${r.title?.replace(/\|/g, '\\|') || 'Unknown'}** | ${r.content.replace(/\|/g, '\\|')} |\n`;
+						});
+					} else {
+						searchResultsMessage.content += `\n\n| Index | Record Content |\n| :--- | :--- |\n`;
+						sanitizedRecords.slice(0, 10).forEach((r, i) => {
+							searchResultsMessage.content += `| ${i + 1} | ${r.content.replace(/\|/g, '\\|')} |\n`;
+						});
+					}
+
+					if (sanitizedRecords.length > 10) {
+						searchResultsMessage.content += `\n*...and ${sanitizedRecords.length - 10} more records available.*`;
+					}
+				} else {
+					searchResultsMessage.content += `\n\n*No matching records were found.*`;
+				}
+
+				setGuidedPromptMessage(`Database Search: Found ${filteredRecords.length} records.`);
+				setMessages(prev => [...prev, searchResultsMessage]);
+				setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: [...s.messages, searchResultsMessage] } : s));
+
+				if (step.multiStepInstruction) {
+					setGuidedPromptMessage(step.multiStepInstruction);
+				} else {
+					if (stepIndex + 1 < workflow.steps.length) {
+						setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 3000);
+					} else {
+						setTimeout(() => {
+							setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, currentWorkflowStep: null } : s));
+							setGuidedPromptMessage(null);
+						}, 3000);
+					}
+				}
+			} else {
+				setGuidedPromptMessage("Database source not found. Skipping search...");
+				if (stepIndex + 1 < workflow.steps.length) {
+					setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 1500);
+				} else {
+					setTimeout(() => {
+						setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, currentWorkflowStep: null } : s));
+						setGuidedPromptMessage(null);
+					}, 1500);
+				}
+			}
+		} else if (step.type === 'web_scraper') {
+			const targetUrl = queryOverride || step.url;
+			if (!targetUrl) {
+				setGuidedPromptMessage("Workflow Scraper: Please enter URL to scrape");
+				return;
+			}
+			setGuidedPromptMessage(`Scraping ${targetUrl}...`);
+			setIsGenerating(true);
+
+			try {
+				const content = await getContentFromWebsite(targetUrl, step.includeMeta || false);
+				setIsGenerating(false);
+
+				const scraperMessage: Message = {
+					id: Date.now().toString(),
+					role: 'user',
+					isSystem: true,
+					content: content,
+					userName: userDisplayName || effectiveUser,
+					userId: effectiveUser,
+					//content: `**Web Scraper Results**\nURL: ${targetUrl}\n\n${content}`
+				};
+
+				setMessages(prev => [...prev, scraperMessage]);
+				setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: [...s.messages, scraperMessage] } : s));
+
+				if (step.multiStepInstruction) {
+					setGuidedPromptMessage(step.multiStepInstruction);
+				} else {
+					if (stepIndex + 1 < workflow.steps.length) {
+						setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 3000);
+					} else {
+						setTimeout(() => {
+							setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, currentWorkflowStep: null } : s));
+							setGuidedPromptMessage(null);
+						}, 3000);
+					}
+				}
+			} catch (err: any) {
+				setIsGenerating(false);
+				setGuidedPromptMessage(`Scraping failed: ${err.message}`);
+				if (stepIndex + 1 < workflow.steps.length) {
+					setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 3000);
+				} else {
+					setTimeout(() => {
+						setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, currentWorkflowStep: null } : s));
+						setGuidedPromptMessage(null);
+					}, 3000);
+				}
+			}
 		}
 	};
 
@@ -961,6 +1265,74 @@ const App = () => {
 		a.click();
 		document.body.removeChild(a);
 		URL.revokeObjectURL(url);
+	};
+
+	const handleLoadMoreSearchResults = (messageId: string) => {
+		const msg = messagesRef.current.find(m => m.id === messageId);
+		if (!msg || !msg.searchMetadata) return;
+
+		const { databaseId, searchQuery, offset, totalResults } = msg.searchMetadata;
+		const dbSource = databaseSources.find(db => db.id === databaseId);
+		if (!dbSource) return;
+
+		const effectiveUser = currentUser || (typeof window !== 'undefined' ? localStorage.getItem('chat_username') : undefined) || undefined;
+
+		const nextOffset = offset + 10;
+		const allRows = dbSource.content.split('\n').filter(line => line.trim());
+		const dataRows = dbSource.type === 'csv_upload' ? allRows.slice(1) : allRows;
+		const filteredRecords = dataRows.filter(row => row.toLowerCase().includes(searchQuery.toLowerCase()));
+
+		if (offset >= totalResults) return;
+
+		const moreResultsMessage: Message = {
+			id: Date.now().toString(),
+			role: 'user',
+			isSystem: true,
+			content: `**Additional Database Results** (Records ${offset + 1} - ${Math.min(nextOffset, totalResults)})\nSource: ${dbSource.name}\nQuery: "${searchQuery}"`,
+			userName: userDisplayName || effectiveUser,
+			userId: effectiveUser,
+			searchMetadata: {
+				databaseId,
+				searchQuery,
+				offset: nextOffset,
+				totalResults
+			}
+		};
+
+		moreResultsMessage.content += `\n\n| Index | Record Content |\n| :--- | :--- |\n`;
+		filteredRecords.slice(offset, nextOffset).forEach((r, i) => {
+			moreResultsMessage.content += `| ${offset + i + 1} | ${r.replace(/\|/g, '\\|')} |\n`;
+		});
+
+		if (nextOffset < totalResults) {
+			moreResultsMessage.content += `\n\n*...and ${totalResults - nextOffset} more records available.*`;
+		} else {
+			moreResultsMessage.content += `\n\n*All matching records have been loaded.*`;
+		}
+
+		setMessages(prev => [...prev, moreResultsMessage]);
+		if (currentSessionId) {
+			setSessions(prev => prev.map(s => s.id === currentSessionId ? { ...s, messages: [...s.messages, moreResultsMessage] } : s));
+		}
+	};
+
+	const handleLogout = () => {
+		if (process.env.USE_MSAL === 'true' && instance) {
+			setCurrentSessionId(null);
+			setMessages([]);
+			setCurrentFolderViewId(null);
+			setSessions([]);
+			setFolders([]);
+
+			localStorage.removeItem('chat_username');
+			localStorage.removeItem('chat_display_name');
+			localStorage.removeItem('active_group_id');
+			localStorage.removeItem('active_persona_id');
+
+			instance.logoutRedirect({
+				postLogoutRedirectUri: window.location.origin
+			});
+		}
 	};
 
 	const handleNextWorkflowStep = () => {
@@ -1214,10 +1586,6 @@ const App = () => {
 			setEditingFolderId(null);
 		}
 	};
-
-
-
-
 
 	const handleRegenerate = async (msgId: string, model: MultiModel, type: 'retry' | 'expand' | 'concise') => {
 		setRegenMenuOpen(null);
@@ -1638,291 +2006,10 @@ const App = () => {
 		setSelectedBriefcaseFiles(new Set());
 	};
 
-	const executeWorkflowStep = async (sessionId: string, workflowId: string, stepIndex: number, currentPersonaId?: string, queryOverride?: string) => {
-		const workflow = workflowsRef.current.find(w => w.id === workflowId);
-		if (!workflow) return;
-
-		const effectiveUser = currentUser || (typeof window !== 'undefined' ? localStorage.getItem('chat_username') : undefined) || undefined;
-
-		const step = workflow.steps[stepIndex];
-		if (!step) {
-			setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, currentWorkflowStep: null } : s));
-			setGuidedPromptMessage(null);
-			return;
-		}
-
-		setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, currentWorkflowStep: stepIndex } : s));
-
-		if (step.type === 'prompt' && step.prompt) {
-			if (step.model) setSelectedModels([step.model]);
-
-			let effectivePrompt = step.prompt;
-			const nextStep = workflow.steps[stepIndex + 1];
-			if (nextStep && nextStep.type === 'export' && nextStep.exportFormat === 'pptx') {
-				effectivePrompt += "\n\n(IMPORTANT: Please format the output as a presentation. Separate each slide with a horizontal rule '---' on a new line so it can be parsed correctly.)";
-			}
-
-			setInput(effectivePrompt);
-
-			if (step.multiStepInstruction) {
-				setGuidedPromptMessage(step.multiStepInstruction);
-			} else {
-				setTimeout(() => handleSendWithText(effectivePrompt, sessionId, currentPersonaId, step.model), 50);
-			}
-		} else if (step.type === 'file_upload') {
-			setGuidedPromptMessage(step.fileRequirement || "Please upload required files.");
-		} else if (step.type === 'mcp_tool') {
-			const allTools = Object.values(serverToolsRef.current).flat();
-			const toolsToEnable = allTools.filter(t => step.toolIds?.includes(t.id));
-			setSelectedTools(toolsToEnable);
-			setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 50);
-		} else if (step.type === 'export') {
-			const exportMsg: Message = {
-				id: Date.now().toString(),
-				role: 'user',
-				isSystem: true,
-				content: `**Workflow Export Ready**\n\nThe current context has been prepared for export in **${step.exportFormat?.toUpperCase() || 'TEXT'}** format. Click the button below to download the file.`,
-				workflowExport: { format: step.exportFormat || 'text' },
-				userName: userDisplayName || effectiveUser,
-				userId: effectiveUser,
-				workflowStepIndex: stepIndex
-			};
-			setMessages(prev => {
-				const last = prev[prev.length - 1];
-				if (last && last.workflowExport && last.workflowExport.format === (step.exportFormat || 'text')) {
-					return prev;
-				}
-				return [...prev, exportMsg];
-			});
-			setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: [...s.messages, exportMsg] } : s));
-			setGuidedPromptMessage(null);
-			setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 50);
-		} else if (step.type === 'persona') {
-			setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, personaId: step.personaId } : s));
-			setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, step.personaId), 50);
-		} else if (step.type === 'database_search' || step.type === 'vector_search') {
-			const dbSource = databaseSourcesRef.current.find(db => db.id === step.databaseId);
-
-			if (dbSource) {
-				const query = queryOverride || step.searchQuery || '';
-
-				if (!query) {
-					setGuidedPromptMessage(`Workflow Search: Please enter search query for ${dbSource.name}`);
-					return;
-				}
-
-				setGuidedPromptMessage(`Searching ${dbSource.name} for "${query}"...`);
-
-				let filteredRecords: { content: string; title?: string }[] = [];
-
-				if (dbSource.type === 'azure_ai_search') {
-					try {
-						setIsGenerating(true);
-						filteredRecords = await searchAzureAISearch(
-							dbSource.azureEndpoint!,
-							dbSource.azureSearchKey!,
-							dbSource.azureIndexName!,
-							dbSource.azureContentField!,
-							dbSource.azureVectorField!,
-							dbSource.azureEmbeddingModel!,
-							query,
-							dbSource.azureTitleField
-						);
-						setIsGenerating(false);
-					} catch (err: any) {
-						setIsGenerating(false);
-						console.error("Azure Search error:", err);
-						setGuidedPromptMessage(`Azure Search Error: ${err.message}`);
-						setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 3000);
-						return;
-					}
-				} else {
-					const allRows = dbSource.content.split('\n').filter(line => line.trim());
-					const dataRows = dbSource.type === 'csv_upload' ? allRows.slice(1) : allRows;
-					filteredRecords = dataRows.filter(row => row.toLowerCase().includes(query.toLowerCase())).map(row => ({ content: row }));
-				}
-
-				const searchResultsMessage: Message = {
-					id: Date.now().toString(),
-					role: 'user',
-					isSystem: true,
-					content: `**Database Search Results**\nSource: ${dbSource.name}\nQuery: "${query}"\nFound ${filteredRecords.length} records. These are now part of the conversation context.`,
-					userName: userDisplayName || effectiveUser,
-					userId: effectiveUser,
-					searchMetadata: {
-						databaseId: step.databaseId!,
-						searchQuery: query,
-						offset: 10,
-						totalResults: filteredRecords.length
-					},
-					workflowStepIndex: stepIndex
-				};
-
-				if (filteredRecords.length > 0) {
-					const sanitizedRecords = filteredRecords.map(r => {
-						let content = r.content.replace(/[\r\n\t]+/g, ' ').trim();
-						const firstCapIndex = content.search(/[A-Z]/);
-						if (firstCapIndex !== -1) {
-							content = content.slice(firstCapIndex);
-						}
-						return { ...r, content };
-					});
-
-					const hasTitles = sanitizedRecords.some(r => r.title);
-					if (hasTitles) {
-						searchResultsMessage.content += `\n\n| &nbsp; | Source Document | Record Content |\n| :--- | :--- | :--- |\n`;
-						sanitizedRecords.slice(0, 10).forEach((r, i) => {
-							searchResultsMessage.content += `| ${i + 1} | **${r.title?.replace(/\|/g, '\\|') || 'Unknown'}** | ${r.content.replace(/\|/g, '\\|')} |\n`;
-						});
-					} else {
-						searchResultsMessage.content += `\n\n| Index | Record Content |\n| :--- | :--- |\n`;
-						sanitizedRecords.slice(0, 10).forEach((r, i) => {
-							searchResultsMessage.content += `| ${i + 1} | ${r.content.replace(/\|/g, '\\|')} |\n`;
-						});
-					}
-
-					if (sanitizedRecords.length > 10) {
-						searchResultsMessage.content += `\n*...and ${sanitizedRecords.length - 10} more records available.*`;
-					}
-				} else {
-					searchResultsMessage.content += `\n\n*No matching records were found.*`;
-				}
-
-				setGuidedPromptMessage(`Database Search: Found ${filteredRecords.length} records.`);
-				setMessages(prev => [...prev, searchResultsMessage]);
-				setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: [...s.messages, searchResultsMessage] } : s));
-
-				if (step.multiStepInstruction) {
-					setGuidedPromptMessage(step.multiStepInstruction);
-				} else {
-					if (stepIndex + 1 < workflow.steps.length) {
-						setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 3000);
-					} else {
-						setTimeout(() => {
-							setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, currentWorkflowStep: null } : s));
-							setGuidedPromptMessage(null);
-						}, 3000);
-					}
-				}
-			} else {
-				setGuidedPromptMessage("Database source not found. Skipping search...");
-				if (stepIndex + 1 < workflow.steps.length) {
-					setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 1500);
-				} else {
-					setTimeout(() => {
-						setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, currentWorkflowStep: null } : s));
-						setGuidedPromptMessage(null);
-					}, 1500);
-				}
-			}
-		} else if (step.type === 'web_scraper') {
-			const targetUrl = queryOverride || step.url;
-			if (!targetUrl) {
-				setGuidedPromptMessage("Workflow Scraper: Please enter URL to scrape");
-				return;
-			}
-			setGuidedPromptMessage(`Scraping ${targetUrl}...`);
-			setIsGenerating(true);
-
-			try {
-				const content = await getContentFromWebsite(targetUrl, step.includeMeta || false);
-				setIsGenerating(false);
-
-				const scraperMessage: Message = {
-					id: Date.now().toString(),
-					role: 'user',
-					isSystem: true,
-					content: content,
-					userName: userDisplayName || effectiveUser,
-					userId: effectiveUser,
-					//content: `**Web Scraper Results**\nURL: ${targetUrl}\n\n${content}`
-				};
-
-				setMessages(prev => [...prev, scraperMessage]);
-				setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: [...s.messages, scraperMessage] } : s));
-
-				if (step.multiStepInstruction) {
-					setGuidedPromptMessage(step.multiStepInstruction);
-				} else {
-					if (stepIndex + 1 < workflow.steps.length) {
-						setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 3000);
-					} else {
-						setTimeout(() => {
-							setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, currentWorkflowStep: null } : s));
-							setGuidedPromptMessage(null);
-						}, 3000);
-					}
-				}
-			} catch (err: any) {
-				setIsGenerating(false);
-				setGuidedPromptMessage(`Scraping failed: ${err.message}`);
-				if (stepIndex + 1 < workflow.steps.length) {
-					setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 3000);
-				} else {
-					setTimeout(() => {
-						setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, currentWorkflowStep: null } : s));
-						setGuidedPromptMessage(null);
-					}, 3000);
-				}
-			}
-		}
-	};
-
-	const handleLoadMoreSearchResults = (messageId: string) => {
-		const msg = messagesRef.current.find(m => m.id === messageId);
-		if (!msg || !msg.searchMetadata) return;
-
-		const { databaseId, searchQuery, offset, totalResults } = msg.searchMetadata;
-		const dbSource = databaseSources.find(db => db.id === databaseId);
-		if (!dbSource) return;
-
-		const effectiveUser = currentUser || (typeof window !== 'undefined' ? localStorage.getItem('chat_username') : undefined) || undefined;
-
-		const nextOffset = offset + 10;
-		const allRows = dbSource.content.split('\n').filter(line => line.trim());
-		const dataRows = dbSource.type === 'csv_upload' ? allRows.slice(1) : allRows;
-		const filteredRecords = dataRows.filter(row => row.toLowerCase().includes(searchQuery.toLowerCase()));
-
-		if (offset >= totalResults) return;
-
-		const moreResultsMessage: Message = {
-			id: Date.now().toString(),
-			role: 'user',
-			isSystem: true,
-			content: `**Additional Database Results** (Records ${offset + 1} - ${Math.min(nextOffset, totalResults)})\nSource: ${dbSource.name}\nQuery: "${searchQuery}"`,
-			userName: userDisplayName || effectiveUser,
-			userId: effectiveUser,
-			searchMetadata: {
-				databaseId,
-				searchQuery,
-				offset: nextOffset,
-				totalResults
-			}
-		};
-
-		moreResultsMessage.content += `\n\n| Index | Record Content |\n| :--- | :--- |\n`;
-		filteredRecords.slice(offset, nextOffset).forEach((r, i) => {
-			moreResultsMessage.content += `| ${offset + i + 1} | ${r.replace(/\|/g, '\\|')} |\n`;
-		});
-
-		if (nextOffset < totalResults) {
-			moreResultsMessage.content += `\n\n*...and ${totalResults - nextOffset} more records available.*`;
-		} else {
-			moreResultsMessage.content += `\n\n*All matching records have been loaded.*`;
-		}
-
-		setMessages(prev => [...prev, moreResultsMessage]);
-		if (currentSessionId) {
-			setSessions(prev => prev.map(s => s.id === currentSessionId ? { ...s, messages: [...s.messages, moreResultsMessage] } : s));
-		}
-	};
-
 	const openMoveToModal = (sessionId?: string) => {
 		const targetId = sessionId || currentSessionId;
 		if (targetId) setMoveToSessionId(targetId);
 	};
-
-
 
 	const playWorkflow = (workflow: Workflow) => {
 		setIsWorkflowBuilderOpen(false);
@@ -1958,8 +2045,6 @@ const App = () => {
 	};
 
 	const removeAttachment = (id: string) => setAttachments(prev => prev.filter(a => a.id !== id));
-
-
 
 	const renderInputArea = (mode: 'default' | 'folder' | 'centered' = 'default') => {
 		if (readOnlyMode) {
@@ -2205,8 +2290,6 @@ const App = () => {
 		);
 	};
 
-
-
 	const useLibraryPrompt = (prompt: LibraryPrompt) => {
 		setIsLibraryOpen(false);
 		handleNewChat(undefined, prompt.multiStepInstruction);
@@ -2226,6 +2309,24 @@ const App = () => {
 
 	const isWorkflowAtFileUpload = activeWorkflowStep?.type === 'file_upload';
 	const isWorkflowAtExport = activeWorkflowStep?.type === 'export';
+
+	if (process.env.USE_MSAL === 'true' && !isAuthenticated) {
+		return (
+			<div className="flex flex-col items-center justify-center h-screen bg-app text-primary gap-6">
+				<div className="flex flex-col items-center gap-2">
+					<h1 className="text-3xl font-bold tracking-tight">Welcome to Multi-Model Orchestrator</h1>
+					<p className="text-secondary text-sm">A next-generation AI interface that goes beyond simple chat.</p>
+				</div>
+				<button
+					onClick={() => instance?.loginRedirect(loginRequest)}
+					className="px-6 py-3 bg-accent text-white rounded-xl shadow-lg hover:opacity-90 transition-all font-semibold flex items-center gap-2 hover:scale-105 active:scale-95 duration-200"
+				>
+					<ShieldCheck className="w-5 h-5" />
+					Sign in with Microsoft Entra
+				</button>
+			</div>
+		);
+	}
 
 	if (currentView === 'admin') {
 		return (
@@ -2529,6 +2630,16 @@ const App = () => {
 							{theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
 							<span>{theme === 'dark' ? 'Light' : 'Dark'} Mode</span>
 						</button>
+
+						{process.env.USE_MSAL === 'true' && isAuthenticated && (
+							<button
+								onClick={handleLogout}
+								className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-colors"
+							>
+								<LogOut className="w-4 h-4" />
+								<span>Log Out</span>
+							</button>
+						)}
 					</div>
 				</aside>
 			)
@@ -2735,7 +2846,7 @@ const App = () => {
 												<div className="flex flex-col items-center space-y-4 mb-4">
 													<button onClick={() => setLandingView('home')} className="w-12 h-12 bg-card rounded-full flex items-center justify-center border border-border shadow-inner hover:bg-card-hover transition-colors"><Bot className="w-6 h-6 text-primary" /></button>
 												</div>
-												<h1 className="text-4xl font-bold tracking-tight text-primary mb-2">Welcome, Romayne</h1>
+												<h1 className="text-4xl font-bold tracking-tight text-primary mb-2">Welcome, {currentUser && currentUser !== 'default_user' ? currentUser.split(' ')[0] : 'User'}</h1>
 												<h2 className="text-2xl font-medium tracking-tight">How can I help you today?</h2>
 											</div>
 										)}

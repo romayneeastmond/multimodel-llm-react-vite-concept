@@ -98,10 +98,90 @@ CONTENT_TRANSLATION_ENDPOINT=your_translation_endpoint
 AZURE_CACHE_ENDPOINT=your_cache_endpoint
 
 # ============================================
+# OPTIONAL - MSAL Authentication
+# ============================================
+# Enable Microsoft Entra ID (Azure AD) authentication
+USE_MSAL=false
+AZURE_AD_CLIENT_ID=your_application_client_id
+AZURE_AD_TENANT_ID=your_tenant_id
+AZURE_AD_REDIRECT_URI=http://localhost:3000
+
+# ============================================
 # OPTIONAL - MCP Server Configuration
 # ============================================
 MCP_SERVER_CONFIGS=your_mcp_server_configs_json
 ```
+
+#### **Step 2.5: (Optional) Enable MSAL Authentication**
+
+To enable Microsoft Entra ID (formerly Azure Active Directory) authentication:
+
+**1. Register Application in Azure Portal:**
+
+1. Go to [Azure Portal](https://portal.azure.com) → **Microsoft Entra ID** → **App registrations**
+2. Click **New registration**
+3. Configure:
+   - **Name**: Multi-Model Orchestrator (or your preferred name)
+   - **Supported account types**: Choose based on your needs
+     - *Accounts in this organizational directory only* (Single tenant)
+     - *Accounts in any organizational directory* (Multi-tenant)
+     - *Accounts in any organizational directory and personal Microsoft accounts*
+   - **Redirect URI**: 
+     - Platform: **Single-page application (SPA)**
+     - URI: `http://localhost:3000` (development) or your production URL
+4. Click **Register**
+
+**2. Configure Application Settings:**
+
+After registration, navigate to your app's page:
+
+1. **Overview** → Copy the **Application (client) ID**
+2. **Overview** → Copy the **Directory (tenant) ID**
+3. **Authentication**:
+   - Under **Single-page application**, ensure your redirect URI is listed
+   - Add additional redirect URIs for production (e.g., `https://yourdomain.com`)
+   - Under **Implicit grant and hybrid flows**: Leave unchecked (not needed for SPA)
+   - Under **Advanced settings** → **Allow public client flows**: No
+4. **API permissions** (optional):
+   - The default `User.Read` permission is sufficient for basic authentication
+   - Add additional permissions if needed for your use case
+
+**3. Update Environment Variables:**
+
+Add these to your `.env.local` file:
+
+```env
+USE_MSAL=true
+AZURE_AD_CLIENT_ID=your_application_client_id_from_step_2
+AZURE_AD_TENANT_ID=your_tenant_id_from_step_2
+AZURE_AD_REDIRECT_URI=http://localhost:3000
+```
+
+**4. Update Vite Configuration:**
+
+The application is already configured to expose MSAL environment variables. No changes needed to `vite.config.ts` unless you want to customize.
+
+**5. Restart Development Server:**
+
+```bash
+npm run dev
+```
+
+**What Changes with MSAL Enabled:**
+
+✅ **User Authentication**: Users must sign in with Microsoft credentials  
+✅ **Data Isolation**: Each user's conversations, workflows, and settings are scoped to their account  
+✅ **Logout Button**: "Log Out" button appears in the sidebar footer  
+✅ **No Default User**: The `default_user` account is automatically disabled  
+✅ **Persistent Sessions**: User identity persists across browser refreshes
+
+**Important Notes:**
+
+- When `USE_MSAL=true`, unauthenticated users will see a sign-in screen
+- User data is partitioned by their Microsoft account name in Cosmos DB
+- For production, update `AZURE_AD_REDIRECT_URI` to match your domain
+- Multi-tenant apps require admin consent for certain permissions
+
 
 #### **Step 3: Set Up Azure Cosmos DB**
 
