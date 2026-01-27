@@ -94,26 +94,30 @@ export default defineConfig(({ mode }) => {
 			})
 		],
 		define: {
-			'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+			'process.env.AZURE_AD_CLIENT_ID': JSON.stringify(env.AZURE_AD_CLIENT_ID),
+			'process.env.AZURE_AD_REDIRECT_URI': JSON.stringify(env.AZURE_AD_REDIRECT_URI),
+			'process.env.AZURE_AD_TENANT_ID': JSON.stringify(env.AZURE_AD_TENANT_ID),
 			'process.env.AZURE_API_KEY': JSON.stringify(env.AZURE_API_KEY),
-			'process.env.AZURE_ENDPOINT': JSON.stringify(env.AZURE_ENDPOINT),
-			'process.env.CLAUDE_ENDPOINT': JSON.stringify(env.CLAUDE_ENDPOINT),
+			'process.env.AZURE_CACHE_ENDPOINT': JSON.stringify(env.AZURE_CACHE_ENDPOINT),
+			'process.env.AZURE_COSMOS_DB_ID': JSON.stringify(env.AZURE_COSMOS_DB_ID),
 			'process.env.AZURE_COSMOS_ENDPOINT': JSON.stringify(env.AZURE_COSMOS_ENDPOINT),
 			'process.env.AZURE_COSMOS_KEY': JSON.stringify(env.AZURE_COSMOS_KEY),
-			'process.env.AZURE_COSMOS_DB_ID': JSON.stringify(env.AZURE_COSMOS_DB_ID),
-			'process.env.WEB_SCRAPER_ENDPOINT': JSON.stringify(env.WEB_SCRAPER_ENDPOINT),
+			'process.env.AZURE_ENDPOINT': JSON.stringify(env.AZURE_ENDPOINT),
+			'process.env.CLAUDE_ENDPOINT': JSON.stringify(env.CLAUDE_ENDPOINT),
 			'process.env.CONTENT_COMPARISON_ENDPOINT': JSON.stringify(env.CONTENT_COMPARISON_ENDPOINT),
 			'process.env.CONTENT_EXPORT_PDF': JSON.stringify(env.CONTENT_EXPORT_PDF),
 			'process.env.CONTENT_EXPORT_POWERPOINT': JSON.stringify(env.CONTENT_EXPORT_POWERPOINT),
 			'process.env.CONTENT_EXPORT_WORD': JSON.stringify(env.CONTENT_EXPORT_WORD),
 			'process.env.CONTENT_EXTRACTOR_ENDPOINT': JSON.stringify(env.CONTENT_EXTRACTOR_ENDPOINT),
-			'process.env.CONTENT_RESULTS_ENDPOINT': JSON.stringify(env.CONTENT_RESULTS_ENDPOINT),
 			'process.env.CONTENT_RESULTS_CLAUSES_ENDPOINT': JSON.stringify(env.CONTENT_RESULTS_CLAUSES_ENDPOINT),
+			'process.env.CONTENT_RESULTS_ENDPOINT': JSON.stringify(env.CONTENT_RESULTS_ENDPOINT),
 			'process.env.CONTENT_RESULTS_EXTRACTIONS_ENDPOINT': JSON.stringify(env.CONTENT_RESULTS_EXTRACTIONS_ENDPOINT),
 			'process.env.CONTENT_SUMMARIZATION_ENDPOINT': JSON.stringify(env.CONTENT_SUMMARIZATION_ENDPOINT),
 			'process.env.CONTENT_TRANSLATION_ENDPOINT': JSON.stringify(env.CONTENT_TRANSLATION_ENDPOINT),
-			'process.env.AZURE_CACHE_ENDPOINT': JSON.stringify(env.AZURE_CACHE_ENDPOINT),
-			'process.env.MCP_SERVER_CONFIGS': JSON.stringify(env.MCP_SERVER_CONFIGS)
+			'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+			'process.env.MCP_SERVER_CONFIGS': JSON.stringify(env.MCP_SERVER_CONFIGS),
+			'process.env.USE_MSAL': JSON.stringify(env.USE_MSAL),
+			'process.env.WEB_SCRAPER_ENDPOINT': JSON.stringify(env.WEB_SCRAPER_ENDPOINT)
 		},
 		resolve: {
 			alias: {
