@@ -21,11 +21,13 @@ This document outlines planned features, improvements, and ideas for the Multi-M
 | ✅ PWA Creation | Add manifest and service worker for Progressive Web App support. |
 | ☐ Delete Replies and Prompts | Although branching exists, user might want to delete parts of a converation |
 | ☐ Merge Multi-Model Responses | Although the Canvas view exists, it might also be useful to merge within the conversation. |
-| ☐ Microsoft Teams Integration | Allow for integration with Microsoft Teams to allow for group conversations and sharing of workflows. |
+| ✅ Microsoft Teams Integration | Allow for integration with Microsoft Teams to allow for sharing of conversations 💬. |
 
 💡 PDF documents are parsed on a per page basis and page ranges should be selectable. This will allow for more efficient document processing and analysis. A feature that I added to a previous project [azure-openai-angular](https://github.com/romayneeastmond/azure-openai-angular). During my MBA program I could upload entire textbooks (aproximately 500+ pages) and select ranges, i.e. page 80 to 100, to vectorize and use cosine similarity to find the most similar pages. This made outlining essays and citations very efficient. 
 
 ⭐ Infinite context window is a feature that I added to a previous project [azure-openai-angular](https://github.com/romayneeastmond/azure-openai-angular). Years ago, with only access to GTP 35-Turbo 16k, I found that it was helpful to have a sliding context window. Essentially every n messages, remove x number of system messages, and every n1 messages, remove x1 number of user messages. This allowed for a sliding context window that was helpful for long conversations. Worked well with interrogating large documents, i.e. textbooks, and outlining essays.
+
+💬 Microsoft Teams Integration is a feature that I added to to this project [multimodel-llm-react-vite-team](https://github.com/romayneeastmond/multimodel-llm-react-vite-teams). However, I do not believe that it brings any actual value to Teams. Tab applications are not persistent and the context is lost when the user navigates away from the tab. Therefore this is strictly for vanity reasons more than anything else.
 
 ## Continual UI Improvements
 
