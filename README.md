@@ -110,6 +110,11 @@ AZURE_AD_REDIRECT_URI=http://localhost:3000
 # OPTIONAL - MCP Server Configuration
 # ============================================
 MCP_SERVER_CONFIGS=your_mcp_server_configs_json
+
+# ============================================
+# OPTIONAL - SERP Api Configuration
+# ============================================
+SERP_API_KEY=your_serp_api_key_here
 ```
 
 #### **Step 2.5: (Optional) Enable MSAL Authentication**
@@ -378,6 +383,7 @@ Create multi-step AI workflows without code.
 - **Database Search**: Query CSV or Azure AI Search
 - **Vector Search**: Semantic search with embeddings
 - **Web Scraper**: Extract content from URLs
+- **SerpApi**: Execute Google searches and extract results
 
 **Example Workflow:**
 ```

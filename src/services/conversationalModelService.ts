@@ -1,5 +1,6 @@
 import { AttachedFile } from '../types/index';
 
+const AZURE_CACHE_ENDPOINT = process.env.AZURE_CACHE_ENDPOINT;
 const CONTENT_COMPARISON_ENDPOINT = process.env.CONTENT_COMPARISON_ENDPOINT;
 const CONTENT_EXPORT_PDF = process.env.CONTENT_EXPORT_PDF;
 const CONTENT_EXPORT_POWERPOINT = process.env.CONTENT_EXPORT_POWERPOINT;
@@ -11,7 +12,6 @@ const CONTENT_RESULTS_EXTRACTIONS_ENDPOINT = process.env.CONTENT_RESULTS_EXTRACT
 const CONTENT_SUMMARIZATION_ENDPOINT = process.env.CONTENT_SUMMARIZATION_ENDPOINT;
 const CONTENT_TRANSLATION_ENDPOINT = process.env.CONTENT_TRANSLATION_ENDPOINT;
 const WEB_SCRAPER_ENDPOINT = process.env.WEB_SCRAPER_ENDPOINT;
-const AZURE_CACHE_ENDPOINT = process.env.AZURE_CACHE_ENDPOINT;
 
 export const getComparisonFromContent = async (prompt: string, files: AttachedFile[]): Promise<any[]> => {
 	try {
@@ -189,6 +189,10 @@ export const getContentFromWebsite = async (url: string, includeMeta: boolean = 
 		return `Error scraping ${url}: ${error.message}. (CORS restrictions may apply)`;
 	}
 };
+
+
+
+
 
 export const getDocumentCache = async (documentId: string) => {
 	try {

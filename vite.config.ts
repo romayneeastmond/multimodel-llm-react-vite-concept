@@ -9,6 +9,13 @@ export default defineConfig(({ mode }) => {
 		server: {
 			port: 3000,
 			host: '0.0.0.0',
+			proxy: {
+				'/api/serpapi': {
+					target: 'https://serpapi.com',
+					changeOrigin: true,
+					rewrite: (path) => path.replace(/^\/api\/serpapi/, '')
+				}
+			}
 		},
 		plugins: [
 			react(),
@@ -116,6 +123,7 @@ export default defineConfig(({ mode }) => {
 			'process.env.CONTENT_TRANSLATION_ENDPOINT': JSON.stringify(env.CONTENT_TRANSLATION_ENDPOINT),
 			'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
 			'process.env.MCP_SERVER_CONFIGS': JSON.stringify(env.MCP_SERVER_CONFIGS),
+			'process.env.SERP_API_KEY': JSON.stringify(env.SERP_API_KEY),
 			'process.env.USE_MSAL': JSON.stringify(env.USE_MSAL),
 			'process.env.WEB_SCRAPER_ENDPOINT': JSON.stringify(env.WEB_SCRAPER_ENDPOINT)
 		},

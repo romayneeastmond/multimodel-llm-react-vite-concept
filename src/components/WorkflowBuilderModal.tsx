@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ArrowUp, ArrowDown, Trash2, MessageSquare, FileUp, UserCircle, Cpu, Database, Sparkles, LinkIcon, FileOutput, ChevronDown, Book, Search, Check, Layers, Play, Edit2, Plus, Workflow as WorkflowIcon, Lock } from 'lucide-react';
+import { X, ArrowUp, ArrowDown, Trash2, MessageSquare, FileUp, UserCircle, Cpu, Database, Sparkles, LinkIcon, FileOutput, ChevronDown, Book, Search, Check, Layers, Play, Edit2, Plus, Workflow as WorkflowIcon, Lock, Globe } from 'lucide-react';
 import { Workflow, WorkflowStep, MultiModel, Persona, MCPTool, LibraryPrompt, DatabaseSource, WorkflowStepType } from '../types/index';
 import { AVAILABLE_MODELS } from '../config/constants';
 
@@ -199,13 +199,15 @@ const WorkflowBuilderModal = ({
 																step.type === 'persona' ? 'System Persona' :
 																	step.type === 'database_search' ? 'Database Search' :
 																		step.type === 'vector_search' ? 'Vector Search' :
-																			step.type === 'web_scraper' ? 'Web Scraper' : 'Result Export'}
+																			step.type === 'web_scraper' ? 'Web Scraper' :
+																				step.type === 'serp_search' ? 'SERP Search' : 'Result Export'}
 												</p>
 												<p className="text-[10px] text-secondary truncate">
 													{step.prompt || step.fileRequirement || step.exportFormat ||
 														(step.type === 'persona' ? (personas.find(p => p.id === step.personaId)?.name || 'Default Persona') :
 															(step.type === 'database_search' || step.type === 'vector_search') ? (`Search: ${databaseSources.find(db => db.id === step.databaseId)?.name || 'Unknown'}`) :
-																step.type === 'web_scraper' ? (step.url || 'Dynamic Scraper') : 'Configure step...')}
+																step.type === 'web_scraper' ? (step.url || 'Dynamic Scraper') :
+																	step.type === 'serp_search' ? (step.searchQuery || 'Dynamic Search') : 'Configure step...')}
 												</p>
 											</div>
 											<div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -235,9 +237,9 @@ const WorkflowBuilderModal = ({
 								</div>
 								<div className="pt-4"><p className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-2 text-center">Add Step</p>
 									<div className="grid grid-cols-2 gap-2">
-										<button onClick={() => addWorkflowStep('prompt')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-dashed border-border hover:bg-card-hover text-secondary hover:text-accent transition-all">
-											<MessageSquare className="w-4 h-4" />
-											<span className="text-[10px] font-bold">Prompt</span>
+										<button onClick={() => addWorkflowStep('export')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-dashed border-border hover:bg-card-hover text-secondary hover:text-accent transition-all">
+											<FileOutput className="w-4 h-4" />
+											<span className="text-[10px] font-bold">Export</span>
 										</button>
 										<button onClick={() => addWorkflowStep('file_upload')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-dashed border-border hover:bg-card-hover text-secondary hover:text-accent transition-all">
 											<FileUp className="w-4 h-4" />
@@ -247,25 +249,29 @@ const WorkflowBuilderModal = ({
 											<UserCircle className="w-4 h-4" />
 											<span className="text-[10px] font-bold">Persona</span>
 										</button>
-										<button onClick={() => addWorkflowStep('mcp_tool')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-dashed border-border hover:bg-card-hover text-secondary hover:text-accent transition-all">
-											<Cpu className="w-4 h-4" />
-											<span className="text-[10px] font-bold">Tools</span>
-										</button>
-										<button onClick={() => addWorkflowStep('database_search')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-dashed border-border hover:bg-card-hover text-secondary hover:text-accent transition-all">
-											<Database className="w-4 h-4" />
-											<span className="text-[10px] font-bold">Search</span>
-										</button>
-										<button onClick={() => addWorkflowStep('vector_search')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-dashed border-border hover:bg-card-hover text-secondary hover:text-accent transition-all">
-											<Sparkles className="w-4 h-4" />
-											<span className="text-[10px] font-bold">Vector</span>
+										<button onClick={() => addWorkflowStep('prompt')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-dashed border-border hover:bg-card-hover text-secondary hover:text-accent transition-all">
+											<MessageSquare className="w-4 h-4" />
+											<span className="text-[10px] font-bold">Prompt</span>
 										</button>
 										<button onClick={() => addWorkflowStep('web_scraper')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-dashed border-border hover:bg-card-hover text-secondary hover:text-accent transition-all">
 											<LinkIcon className="w-4 h-4" />
 											<span className="text-[10px] font-bold">Scraper</span>
 										</button>
-										<button onClick={() => addWorkflowStep('export')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-dashed border-border hover:bg-card-hover text-secondary hover:text-accent transition-all">
-											<FileOutput className="w-4 h-4" />
-											<span className="text-[10px] font-bold">Export</span>
+										<button onClick={() => addWorkflowStep('database_search')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-dashed border-border hover:bg-card-hover text-secondary hover:text-accent transition-all">
+											<Database className="w-4 h-4" />
+											<span className="text-[10px] font-bold">Search</span>
+										</button>
+										<button onClick={() => addWorkflowStep('serp_search')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-dashed border-border hover:bg-card-hover text-secondary hover:text-accent transition-all">
+											<Globe className="w-4 h-4" />
+											<span className="text-[10px] font-bold">SERP</span>
+										</button>
+										<button onClick={() => addWorkflowStep('mcp_tool')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-dashed border-border hover:bg-card-hover text-secondary hover:text-accent transition-all">
+											<Cpu className="w-4 h-4" />
+											<span className="text-[10px] font-bold">Tools</span>
+										</button>
+										<button onClick={() => addWorkflowStep('vector_search')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-dashed border-border hover:bg-card-hover text-secondary hover:text-accent transition-all">
+											<Sparkles className="w-4 h-4" />
+											<span className="text-[10px] font-bold">Vector</span>
 										</button>
 									</div>
 								</div>
@@ -344,6 +350,7 @@ const WorkflowBuilderModal = ({
 														{step.type === 'vector_search' && 'Hybrid Vector Search'}
 														{step.type === 'export' && 'Export Results'}
 														{step.type === 'web_scraper' && 'Website Scraper'}
+														{step.type === 'serp_search' && 'Google Search (SERP)'}
 													</h3>
 												</div>
 												<div className="flex items-center gap-1">
@@ -630,6 +637,32 @@ const WorkflowBuilderModal = ({
 															className="w-full bg-panel border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 shadow-sm"
 														/>
 														<p className="text-[10px] text-secondary mt-2">If provided, the workflow will pause after scraping.</p>
+													</div>
+												</div>
+											)}
+											{step.type === 'serp_search' && (
+												<div className="space-y-4">
+													<div>
+														<label className="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Search Query</label>
+														<input
+															type="text"
+															value={step.searchQuery || ''}
+															onChange={(e) => updateWorkflowStep(step.id, { searchQuery: e.target.value })}
+															placeholder="e.g. Latest advancements in quantum computing"
+															className="w-full bg-panel border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 shadow-sm"
+														/>
+														<p className="text-[10px] text-secondary mt-2">If left empty, you will be prompted to enter a query during workflow execution.</p>
+													</div>
+													<div>
+														<label className="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Pause for Review (Optional Instruction)</label>
+														<input
+															type="text"
+															value={step.multiStepInstruction || ''}
+															onChange={(e) => updateWorkflowStep(step.id, { multiStepInstruction: e.target.value })}
+															placeholder="e.g. Review these search results before proceeding..."
+															className="w-full bg-panel border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 shadow-sm"
+														/>
+														<p className="text-[10px] text-secondary mt-2">If provided, the workflow will pause after the search results are returned.</p>
 													</div>
 												</div>
 											)}

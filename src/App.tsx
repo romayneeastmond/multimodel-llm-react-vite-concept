@@ -20,6 +20,7 @@ import { copyToClipboard, getCookie, setCookie } from './utils/chatUtils';
 import { generateModelResponse, searchAzureAISearch } from './services/multiModelService';
 import { saveSharedSession, getSharedSession, listSharedSessions, deleteSharedSession, saveFolder, deleteFolder, listFolders, savePersona, deletePersona, listPersonas, listLibraryPrompts, listWorkflows, listDatabaseSources, CosmosConfig } from './services/cosmosService';
 import { getContentFromWebsite, getContentFromDocuments, getContentForWord, getContentForPDF, getContentForPowerPoint, removeDocumentCache, setDocumentCache } from './services/conversationalModelService';
+import { getSerpResults } from './services/serpApiService';
 import Admin from './components/Admin';
 import Profile from './components/Profile';
 import CodeBlock from './components/CodeBlock';
@@ -1121,7 +1122,57 @@ const App = () => {
 					setTimeout(() => {
 						setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, currentWorkflowStep: null } : s));
 						setGuidedPromptMessage(null);
-					}, 1500);
+					}, 3000);
+				}
+			}
+		} else if (step.type === 'serp_search') {
+			const query = queryOverride || step.searchQuery;
+			if (!query) {
+				setGuidedPromptMessage("Workflow Search: Please enter search query");
+				return;
+			}
+			setGuidedPromptMessage(`Searching Google for "${query}"...`);
+			setIsGenerating(true);
+
+			try {
+				const content = await getSerpResults(query);
+				setIsGenerating(false);
+
+				const searchMessage: Message = {
+					id: Date.now().toString(),
+					role: 'user',
+					isSystem: true,
+					content: `**SERP Search Results**\nQuery: "${query}"\n\n${content}`,
+					userName: userDisplayName || effectiveUser,
+					userId: effectiveUser,
+					workflowStepIndex: stepIndex
+				};
+
+				setMessages(prev => [...prev, searchMessage]);
+				setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, messages: [...s.messages, searchMessage] } : s));
+
+				if (step.multiStepInstruction) {
+					setGuidedPromptMessage(step.multiStepInstruction);
+				} else {
+					if (stepIndex + 1 < workflow.steps.length) {
+						setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 3000);
+					} else {
+						setTimeout(() => {
+							setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, currentWorkflowStep: null } : s));
+							setGuidedPromptMessage(null);
+						}, 3000);
+					}
+				}
+			} catch (err: any) {
+				setIsGenerating(false);
+				setGuidedPromptMessage(`Search failed: ${err.message}`);
+				if (stepIndex + 1 < workflow.steps.length) {
+					setTimeout(() => executeWorkflowStep(sessionId, workflowId, stepIndex + 1, currentPersonaId), 3000);
+				} else {
+					setTimeout(() => {
+						setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, currentWorkflowStep: null } : s));
+						setGuidedPromptMessage(null);
+					}, 3000);
 				}
 			}
 		} else if (step.type === 'web_scraper') {
@@ -2064,7 +2115,7 @@ const App = () => {
 		if (currentSession?.workflowId && currentSession.currentWorkflowStep != null && guidedPromptMessageRef.current?.startsWith('Workflow Search:')) {
 			const workflow = workflowsRef.current.find(w => w.id === currentSession.workflowId);
 			const step = workflow?.steps[currentSession.currentWorkflowStep];
-			if ((step?.type === 'database_search' || step?.type === 'vector_search') && !step.searchQuery) {
+			if ((step?.type === 'database_search' || step?.type === 'vector_search' || step?.type === 'serp_search') && !step.searchQuery) {
 				setIsGenerating(false);
 				executeWorkflowStep(activeSessionId!, currentSession.workflowId, currentSession.currentWorkflowStep, activePersonaId, textToUse);
 				setInput('');

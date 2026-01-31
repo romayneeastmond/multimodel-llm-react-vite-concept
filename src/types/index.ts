@@ -121,7 +121,7 @@ export interface LibraryPrompt {
 	isDefault?: boolean;
 }
 
-export type WorkflowStepType = 'prompt' | 'file_upload' | 'mcp_tool' | 'export' | 'persona' | 'database_search' | 'vector_search' | 'web_scraper';
+export type WorkflowStepType = 'prompt' | 'file_upload' | 'mcp_tool' | 'export' | 'persona' | 'database_search' | 'vector_search' | 'web_scraper' | 'serp_search';
 
 export interface WorkflowStep {
 	id: string;
