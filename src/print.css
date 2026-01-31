@@ -1,0 +1,109 @@
+@media print {
+
+	*,
+	*::before,
+	*::after {
+		color: #000000 !important;
+		background-color: transparent !important;
+		box-shadow: none !important;
+		text-shadow: none !important;
+		filter: none !important;
+	}
+
+	html,
+	body,
+	#root {
+		background-color: #ffffff !important;
+		width: 100% !important;
+		height: auto !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		overflow: visible !important;
+		font-size: 11pt !important;
+	}
+
+	main,
+	.overflow-y-auto,
+	.flex-1,
+	[class*="overflow-"] {
+		display: block !important;
+		width: 100% !important;
+		height: auto !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		position: relative !important;
+		overflow: visible !important;
+		flex: none !important;
+	}
+
+	.max-w-3xl {
+		max-width: 100% !important;
+		width: 100% !important;
+		padding: 0 0.5cm !important;
+	}
+
+	aside,
+	nav,
+	.fixed,
+	.sticky,
+	button,
+	input,
+	textarea,
+	[role="textbox"],
+	[aria-hidden="true"],
+	.bg-panel.mt-auto,
+	.group-hover\:opacity-100,
+	.opacity-0,
+	.absolute.bottom-0.left-0.right-0,
+	[id^="msg-"] .absolute.\-left-10,
+	[id^="msg-"] .absolute.\-left-12,
+	[id^="msg-"] .md\:hidden.mb-2.flex.items-center {
+		display: none !important;
+	}
+
+	[id^="msg-"] {
+		display: block !important;
+		page-break-inside: auto;
+		margin-bottom: 1.5cm;
+		padding-bottom: 0.5cm;
+		border-bottom: 0.5px solid #ccc !important;
+	}
+
+	[id^="msg-"] .max-w-\[90\%\],
+	[id^="msg-"] .md\:max-w-\[85\%\] {
+		max-width: 100% !important;
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+		border: none !important;
+	}
+
+	p {
+		page-break-inside: avoid;
+		orphans: 3;
+		widows: 3;
+	}
+
+	a {
+		text-decoration: underline !important;
+		color: #000000 !important;
+	}
+
+	pre,
+	code {
+		background-color: #f5f5f5 !important;
+		border: 1px solid #ccc !important;
+		white-space: pre-wrap !important;
+		word-wrap: break-word !important;
+	}
+
+	pre *,
+	code * {
+		color: #000000 !important;
+		background-color: transparent !important;
+	}
+
+	.uppercase {
+		font-weight: bold !important;
+		color: #000000 !important;
+	}
+}
