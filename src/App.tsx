@@ -487,7 +487,10 @@ const App = () => {
 					listFolders(config, currentUser),
 					listPersonas(config, currentUser),
 					listLibraryPrompts(config, currentUser),
-					listWorkflows(config, currentUser),
+					Promise.all([
+						listWorkflows(config, currentUser),
+						listWorkflows(config, 'System')
+					]),
 					listDatabaseSources(config, currentUser),
 					listSharedSessions(config, currentUser)
 				]);
@@ -495,7 +498,12 @@ const App = () => {
 				setFolders(fetchedFolders as Folder[]);
 				setPersonas((fetchedPersonas.length > 0 ? fetchedPersonas as Persona[] : DEFAULT_PERSONAS).sort((a, b) => a.name.localeCompare(b.name)));
 				setLibraryPrompts((fetchedLibrary.length > 0 ? fetchedLibrary as LibraryPrompt[] : DEFAULT_LIBRARY_PROMPTS).sort((a, b) => a.title.localeCompare(b.title)));
-				setWorkflows(fetchedWorkflows as Workflow[]);
+
+				const [userWorkflows, systemWorkflows] = fetchedWorkflows as unknown as [Workflow[], Workflow[]];
+				const allWorkflows = [...(systemWorkflows || []), ...(userWorkflows || [])];
+				const uniqueWorkflows = Array.from(new Map(allWorkflows.map(w => [w.id, w])).values());
+				setWorkflows(uniqueWorkflows);
+
 				setDatabaseSources(fetchedDbSources.length > 0 ? fetchedDbSources as DatabaseSource[] : []);
 
 				const sharedFolders = (fetchedFolders as Folder[]).filter((f: any) => f.isShared);
@@ -2345,6 +2353,11 @@ const App = () => {
 				onBack={() => setCurrentView('chat')}
 				isSidebarOpen={isSidebarOpen}
 				onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+				personas={personas}
+				libraryPrompts={libraryPrompts}
+				databaseSources={databaseSources}
+				serverTools={serverTools}
+				onPlayWorkflow={playWorkflow}
 			/>
 		);
 	}

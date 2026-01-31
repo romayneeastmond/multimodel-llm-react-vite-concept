@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ArrowUp, ArrowDown, Trash2, MessageSquare, FileUp, UserCircle, Cpu, Database, Sparkles, LinkIcon, FileOutput, ChevronDown, Book, Search, Check, Layers, Play, Edit2, Plus, Workflow as WorkflowIcon } from 'lucide-react';
+import { X, ArrowUp, ArrowDown, Trash2, MessageSquare, FileUp, UserCircle, Cpu, Database, Sparkles, LinkIcon, FileOutput, ChevronDown, Book, Search, Check, Layers, Play, Edit2, Plus, Workflow as WorkflowIcon, Lock } from 'lucide-react';
 import { Workflow, WorkflowStep, MultiModel, Persona, MCPTool, LibraryPrompt, DatabaseSource, WorkflowStepType } from '../types/index';
 import { AVAILABLE_MODELS } from '../config/constants';
 
@@ -116,12 +116,18 @@ const WorkflowBuilderModal = ({
 													>
 														<Edit2 className="w-4 h-4" />
 													</button>
-													<button
-														onClick={() => setWorkflowToDelete(wf.id)}
-														className="p-2 text-secondary hover:text-red-400 rounded-lg hover:bg-card-hover"
-													>
-														<Trash2 className="w-4 h-4" />
-													</button>
+													{!wf.isSystem ? (
+														<button
+															onClick={() => setWorkflowToDelete(wf.id)}
+															className="p-2 text-secondary hover:text-red-400 rounded-lg hover:bg-card-hover"
+														>
+															<Trash2 className="w-4 h-4" />
+														</button>
+													) : (
+														<div title="System workflows cannot be deleted" className="p-2 text-secondary opacity-50 cursor-not-allowed">
+															<Lock className="w-4 h-4" />
+														</div>
+													)}
 												</div>
 											</div>
 											<p className="text-sm text-secondary line-clamp-2 mb-6 flex-1">{wf.description}</p>
@@ -371,7 +377,6 @@ const WorkflowBuilderModal = ({
 																	</button>
 																</div>
 																<div className="max-h-40 overflow-y-auto custom-scrollbar">
-																	{/* Use logic from parent component or pass prompts */}
 																	{libraryPrompts
 																		.filter(p => !promptLibrarySearchQuery || p.title.toLowerCase().includes(promptLibrarySearchQuery.toLowerCase()) || p.content.toLowerCase().includes(promptLibrarySearchQuery.toLowerCase()))
 																		.map(p => (

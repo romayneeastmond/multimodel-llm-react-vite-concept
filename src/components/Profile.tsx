@@ -90,7 +90,6 @@ const Profile = ({ onBack, isSidebarOpen, onToggleSidebar }: ProfileProps) => {
 			</div>
 
 			<div className="max-w-4xl mx-auto w-full px-4 md:px-8 py-8 md:py-12 space-y-8">
-				{/* User Info Card */}
 				<div className="bg-card border border-border rounded-3xl p-6 md:p-8 shadow-sm">
 					<div className="flex items-start justify-between mb-6">
 						<div className="flex items-center gap-4">
@@ -123,7 +122,6 @@ const Profile = ({ onBack, isSidebarOpen, onToggleSidebar }: ProfileProps) => {
 					</div>
 				</div>
 
-				{/* Groups Section */}
 				<div>
 					<div className="flex items-center gap-3 text-primary mb-4">
 						<ShieldCheck className="w-5 h-5 text-accent" />

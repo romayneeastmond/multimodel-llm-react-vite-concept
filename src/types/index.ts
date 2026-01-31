@@ -143,6 +143,7 @@ export interface Workflow {
 	name: string;
 	description: string;
 	steps: WorkflowStep[];
+	isSystem?: boolean;
 }
 
 export type DatabaseSourceType = 'csv_upload' | 'manual_entry' | 'azure_ai_search';
