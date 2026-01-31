@@ -13,7 +13,7 @@ This document outlines planned features, improvements, and ideas for the Multi-M
 | ☐ Infinite Context Window | Smaller models require context management and a sliding context window is helpful ⭐. |
 | ✅ PDF and PowerPoint Export | Finish the actual PDF export and create a PowerPoint export. |
 | ☐ Additional Database Sources | Manual, CSV, Azure AI Search are currently supported, needs more sources. |
-| ☐ Search Document Briefcase | Unlimited number of documents per conversation needs a way to filter by document name. |
+| ✅ Search Document Briefcase | Unlimited number of documents per conversation needs a way to filter by document name. |
 | ☐ Resource File Support | Remove all hard coded output and move to resource files for i18n. |
 | ✅ MSAL Support | Currently only a single user application (except with group conversations), needs SSO support. |
 | ✅ Microsft Entra Integration | Add permission sets to limit workflows to particular groups. | 

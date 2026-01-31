@@ -1,6 +1,6 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
-	Briefcase, X, AlignLeft, FileSearch, GitCompare, Database, Languages, ChevronDown, Check, Loader2, FolderClosed, Plus, Trash2,
+	Briefcase, X, AlignLeft, FileSearch, GitCompare, Database, Languages, ChevronDown, Check, Loader2, FolderClosed, Plus, Trash2, Search,
 	FileText, FileSpreadsheet, FileImage, FileCode, Presentation, Book, FileVideo, FileAudio, FileArchive
 } from 'lucide-react';
 import { useBriefcase } from '../hooks/useBriefcase';
@@ -45,6 +45,8 @@ const BriefcasePanel = ({ briefcase, databaseSources, isGenerating }: BriefcaseP
 		confirmDeleteAttachment,
 		analysisProgress
 	} = briefcase;
+
+	const [fileSearchQuery, setFileSearchQuery] = useState('');
 
 	return (
 		<div
@@ -222,6 +224,28 @@ const BriefcasePanel = ({ briefcase, databaseSources, isGenerating }: BriefcaseP
 				<div className="flex-1 overflow-y-auto p-5 relative">
 					<input type="file" ref={briefcaseFileInputRef} onChange={handleBriefcaseFileSelect} className="hidden" multiple />
 					<h4 className="text-sm font-bold mb-8 flex items-center gap-2 tracking-tight">Analysis Documents</h4>
+
+					{allSessionAttachments.length > 5 && (
+						<div className="relative mb-6">
+							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
+							<input
+								type="text"
+								placeholder="Search documents..."
+								value={fileSearchQuery}
+								onChange={(e) => setFileSearchQuery(e.target.value)}
+								className="w-full bg-card border border-border rounded-xl pl-10 pr-9 py-2 text-xs outline-none focus:ring-2 ring-accent/20 transition-all shadow-sm"
+							/>
+							{fileSearchQuery && (
+								<button
+									onClick={() => setFileSearchQuery('')}
+									className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-secondary hover:text-primary rounded-full hover:bg-card-hover"
+								>
+									<X className="w-3 h-3" />
+								</button>
+							)}
+						</div>
+					)}
+
 					{isBriefcaseUploading && (
 						<div className="absolute inset-0 z-50 bg-app/90 backdrop-blur-sm flex items-center justify-center">
 							<div className="w-full max-w-md p-8 animate-in fade-in zoom-in duration-300">
@@ -268,7 +292,7 @@ const BriefcasePanel = ({ briefcase, databaseSources, isGenerating }: BriefcaseP
 								</div>
 							)}
 
-							{allSessionAttachments.map((att) => {
+							{allSessionAttachments.filter(att => !fileSearchQuery || att.name.toLowerCase().includes(fileSearchQuery.toLowerCase())).map((att) => {
 								const isSelected = selectedBriefcaseFiles.has(att.id);
 								const ext = att.name.split('.').pop()?.toLowerCase() || '';
 								let Icon = FileText;
