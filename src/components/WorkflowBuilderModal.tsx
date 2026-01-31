@@ -292,6 +292,19 @@ const WorkflowBuilderModal = ({
 												className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 transition-all resize-none shadow-sm"
 											/>
 										</div>
+										{allowSystemDelete && (
+											<div>
+												<label className="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Allowed Groups (Optional)</label>
+												<input
+													type="text"
+													value={workflowForm.allowedGroups?.join(', ') || ''}
+													onChange={(e) => setWorkflowForm({ ...workflowForm, allowedGroups: e.target.value.split(',').map(g => g.trim()).filter(Boolean) })}
+													placeholder="e.g. group-id-1, group-id-2 (Leave empty for all)"
+													className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 transition-all shadow-sm"
+												/>
+												<p className="text-[10px] text-secondary mt-2">Comma-separated list of Microsoft Entra group object IDs. If specified, only users in these groups can see this workflow.</p>
+											</div>
+										)}
 									</div>
 								</div>
 								<div className="space-y-6"><h3 className="text-sm font-bold tracking-tight">Step Configurations</h3>

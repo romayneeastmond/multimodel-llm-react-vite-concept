@@ -12,7 +12,7 @@ export const useWorkflowBuilder = ({ workflows, setWorkflows, currentUser }: Use
 	const [isWorkflowBuilderOpen, setIsWorkflowBuilderOpen] = useState(false);
 	const [editingWorkflowId, setEditingWorkflowId] = useState<string | null>(null);
 	const [isCreatingWorkflow, setIsCreatingWorkflow] = useState(false);
-	const [workflowForm, setWorkflowForm] = useState<Partial<Workflow>>({ name: '', description: '', steps: [] });
+	const [workflowForm, setWorkflowForm] = useState<Partial<Workflow>>({ name: '', description: '', steps: [], allowedGroups: [] });
 	const [workflowToDelete, setWorkflowToDelete] = useState<string | null>(null);
 
 	const addWorkflowStep = (type: WorkflowStepType) => {
@@ -77,7 +77,8 @@ export const useWorkflowBuilder = ({ workflows, setWorkflows, currentUser }: Use
 				name: workflowForm.name!,
 				description: workflowForm.description || '',
 				steps: workflowForm.steps || [],
-				isSystem: currentUser === 'System' ? true : undefined
+				isSystem: currentUser === 'System' ? true : undefined,
+				allowedGroups: workflowForm.allowedGroups
 			};
 			setWorkflows(prev => [...prev, savedWorkflow]);
 		}
@@ -88,7 +89,7 @@ export const useWorkflowBuilder = ({ workflows, setWorkflows, currentUser }: Use
 			saveWorkflow(config, savedWorkflow, currentUser).catch(console.error);
 		}
 
-		setWorkflowForm({ name: '', description: '', steps: [] });
+		setWorkflowForm({ name: '', description: '', steps: [], allowedGroups: [] });
 		setIsCreatingWorkflow(false);
 	};
 
@@ -97,7 +98,8 @@ export const useWorkflowBuilder = ({ workflows, setWorkflows, currentUser }: Use
 		setWorkflowForm({
 			name: workflow.name,
 			description: workflow.description,
-			steps: workflow.steps
+			steps: workflow.steps,
+			allowedGroups: workflow.allowedGroups
 		});
 	};
 
