@@ -80,9 +80,6 @@ const Profile = ({ onBack, isSidebarOpen, onToggleSidebar }: ProfileProps) => {
 								<p className="text-sm text-secondary">{account?.username}</p>
 							</div>
 						</div>
-						<div className="px-3 py-1 bg-accent/10 text-accent rounded-full text-xs font-bold border border-accent/20">
-							Active
-						</div>
 					</div>
 
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
