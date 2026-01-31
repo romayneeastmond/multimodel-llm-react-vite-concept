@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ArrowUp, ArrowDown, Trash2, MessageSquare, FileUp, UserCircle, Cpu, Database, Sparkles, LinkIcon, FileOutput, ChevronDown, Book, Search, Check, Layers, Play, Edit2, Plus, Users, Workflow as WorkflowIcon, Lock } from 'lucide-react';
+import { X, ArrowUp, ArrowDown, Trash2, MessageSquare, FileUp, UserCircle, Cpu, Database, Sparkles, LinkIcon, FileOutput, ChevronDown, Book, Search, Check, Layers, Play, Edit2, Plus, Workflow as WorkflowIcon, Lock } from 'lucide-react';
 import { Workflow, WorkflowStep, MultiModel, Persona, MCPTool, LibraryPrompt, DatabaseSource, WorkflowStepType } from '../types/index';
 import { AVAILABLE_MODELS } from '../config/constants';
 
@@ -157,15 +157,7 @@ const WorkflowBuilderModal = ({
 												</div>
 											</div>
 											<p className="text-sm text-secondary line-clamp-2 mb-6 flex-1">{wf.description}</p>
-											{allowSystemDelete && wf.allowedGroups && wf.allowedGroups.length > 0 && (
-												<div className="flex flex-wrap gap-1 mb-4">
-													{wf.allowedGroups.map(group => (
-														<span key={group} className="text-[10px] bg-secondary/10 text-secondary px-1.5 py-0.5 rounded border border-border flex items-center gap-1" title="Allowed Group">
-															<Users className="w-3 h-3" /> {group}
-														</span>
-													))}
-												</div>
-											)}
+
 											<div className="flex items-center justify-between mt-auto">
 												<span className="text-xs text-secondary font-medium bg-panel px-2.5 py-1 rounded-lg border border-border">
 													{wf.steps.length} {wf.steps.length === 1 ? 'Step' : 'Steps'}

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Database, Server, ShieldCheck, Play, RefreshCw, CheckCircle, ArrowLeft, Lock, Menu, DatabaseZap, LayoutGrid, AlertCircle, Workflow as WorkflowIcon, Layers, Edit2, Trash2 } from 'lucide-react';
+import { Database, Server, ShieldCheck, Play, RefreshCw, CheckCircle, ArrowLeft, Lock, Menu, DatabaseZap, LayoutGrid, AlertCircle, Workflow as WorkflowIcon, Layers, Edit2, Trash2, Users } from 'lucide-react';
 import { testCosmosConnection, installCosmosSchema, listWorkflows, getCosmosConfig } from '../services/cosmosService';
 import { Workflow, Persona, LibraryPrompt, DatabaseSource, MCPTool } from '../types/index';
 import { useWorkflowBuilder } from '../hooks/useWorkflowBuilder';
@@ -319,6 +319,15 @@ const Admin = ({ onBack, isSidebarOpen, onToggleSidebar, personas, libraryPrompt
 												</div>
 											</div>
 											<p className="text-sm text-secondary line-clamp-2 mb-6 flex-1">{wf.description}</p>
+											{wf.allowedGroups && wf.allowedGroups.length > 0 && (
+												<div className="flex flex-wrap gap-1 mb-4">
+													{wf.allowedGroups.map(group => (
+														<span key={group} className="text-[10px] bg-secondary/10 text-secondary px-1.5 py-0.5 rounded border border-border flex items-center gap-1" title="Allowed Group">
+															<Users className="w-3 h-3" /> {group}
+														</span>
+													))}
+												</div>
+											)}
 											<div className="flex items-center justify-between mt-auto">
 												<span className="text-xs text-secondary font-medium bg-panel px-2.5 py-1 rounded-lg border border-border">
 													{wf.steps.length} {wf.steps.length === 1 ? 'Step' : 'Steps'}
