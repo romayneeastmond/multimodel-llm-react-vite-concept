@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useMsal } from "@azure/msal-react";
-import { loginRequest } from "../config/authConfig";
+import { fetchUserGroups } from '../services/graphService';
 import { ArrowLeft, Menu, User, Users, ShieldCheck, Mail, Building } from 'lucide-react';
 
 interface ProfileProps {
@@ -31,29 +31,8 @@ const Profile = ({ onBack, isSidebarOpen, onToggleSidebar }: ProfileProps) => {
 			setError(null);
 
 			try {
-				const response = await instance.acquireTokenSilent({
-					...loginRequest,
-					account: account
-				});
-
-				const headers = new Headers();
-				const bearer = `Bearer ${response.accessToken}`;
-				headers.append("Authorization", bearer);
-
-				const options = {
-					method: "GET",
-					headers: headers
-				};
-
-				const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me/transitiveMemberOf/microsoft.graph.group?$select=id,displayName,description", options);
-
-				if (!graphResponse.ok) {
-					throw new Error(`Graph API error: ${graphResponse.statusText}`);
-				}
-
-				const data = await graphResponse.json();
-				setGroups(data.value || []);
-
+				const groupsData = await fetchUserGroups(instance, account);
+				setGroups(groupsData);
 			} catch (err: any) {
 				console.error("Error fetching groups:", err);
 				setError(err.message || "Failed to fetch groups");
