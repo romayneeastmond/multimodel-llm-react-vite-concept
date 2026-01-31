@@ -2302,21 +2302,21 @@ const App = () => {
 				</form>
 			) : (
 				<button onClick={() => loadSession(session)} className="w-full text-left px-3.5 py-3 rounded-xl text-sm flex flex-col gap-0.5 min-w-0">
-					<span className={`truncate w-full font-medium ${currentSessionId === session.id ? 'text-primary' : 'text-content'} pr-16 flex items-center gap-2`}>
+					<span className={`truncate w-full font-medium ${currentSessionId === session.id ? 'text-primary' : 'text-content'} flex items-center gap-2`}>
 						{session.workflowId && <WorkflowIcon className="w-3 h-3 text-accent shrink-0" />}
 						{session.isShared && <Users className="w-3 h-3 text-accent shrink-0" />}
 						<span className="truncate">{session.title}</span>
 					</span>
-					<div className="flex items-center justify-between">
+					<div className="flex items-center justify-between h-4">
 						<span className="text-[10px] text-secondary">{formatSessionDate(session.timestamp)}</span>
 					</div>
 				</button>
 			)}
 			{!editingSessionId && !readOnlyMode && (
-				<div className="absolute right-2 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1 bg-transparent z-10">
-					<button onClick={(e) => handleTogglePin(e, session.id)} className="p-1.5 text-secondary hover:text-accent bg-transparent transition-colors" title={session.isPinned ? "Unpin" : "Pin"}>{session.isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}</button>
-					<button onClick={(e) => handleStartEditing(e, session)} className="p-1.5 text-secondary hover:text-primary bg-transparent transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-					<button onClick={(e) => initiateDeleteSession(e, session.id)} className="p-1.5 text-secondary hover:text-red-400 bg-transparent transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+				<div className="absolute right-2 bottom-2 hidden group-hover:flex items-center gap-1 bg-transparent z-10">
+					<button onClick={(e) => handleTogglePin(e, session.id)} className="p-1 text-secondary hover:text-accent bg-transparent transition-colors" title={session.isPinned ? "Unpin" : "Pin"}>{session.isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}</button>
+					<button onClick={(e) => handleStartEditing(e, session)} className="p-1 text-secondary hover:text-primary bg-transparent transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
+					<button onClick={(e) => initiateDeleteSession(e, session.id)} className="p-1 text-secondary hover:text-red-400 bg-transparent transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
 				</div>
 			)}
 		</div>
