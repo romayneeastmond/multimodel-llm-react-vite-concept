@@ -12,5 +12,5 @@ export const msalConfig: Configuration = {
 };
 
 export const loginRequest: PopupRequest = {
-	scopes: ["User.Read"],
+	scopes: ["User.Read", "GroupMember.Read.All"],
 };

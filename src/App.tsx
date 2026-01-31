@@ -12,7 +12,7 @@ import {
 	Send, Paperclip, Cpu, ChevronDown, ChevronRight, Box, Check, FileText, X, Bot, Menu, SquarePen, ArrowDown, Copy, Download, CheckCheck, Share, Trash2,
 	Edit2, FileJson, Folder as FolderIcon, FolderOpen, FolderPlus, Plus, MessageSquare, Sparkles, RefreshCw, Maximize2, Minimize2, List, History, Mic,
 	Layout, Sun, Moon, UserCircle, Book, Search, PlusCircle, Heart, Workflow as WorkflowIcon, Activity, UploadCloud, FileDown, Database, ShieldCheck, Briefcase,
-	Loader2, Users, LogOut
+	Loader2, Users, LogOut, User
 } from 'lucide-react';
 import { AVAILABLE_MODELS, MCP_SERVER_CONFIGS, DEFAULT_PERSONAS, DEFAULT_LIBRARY_PROMPTS, SUGGESTIONS } from './config/constants';
 import { MultiModel, Message, AttachedFile, MCPTool, ModelResponse, ChatSession, Folder, Persona, LibraryPrompt, Workflow, DatabaseSource } from './types/index';
@@ -21,6 +21,7 @@ import { generateModelResponse, searchAzureAISearch } from './services/multiMode
 import { saveSharedSession, getSharedSession, listSharedSessions, deleteSharedSession, saveFolder, deleteFolder, listFolders, savePersona, deletePersona, listPersonas, listLibraryPrompts, listWorkflows, listDatabaseSources, CosmosConfig } from './services/cosmosService';
 import { getContentFromWebsite, getContentFromDocuments, getContentForWord, getContentForPDF, getContentForPowerPoint, removeDocumentCache, setDocumentCache } from './services/conversationalModelService';
 import Admin from './components/Admin';
+import Profile from './components/Profile';
 import CodeBlock from './components/CodeBlock';
 import PreBlock from './components/PreBlock';
 import ChatInput from './components/ChatInput';
@@ -56,7 +57,7 @@ const useSafeIsAuthenticated = () => {
 const App = () => {
 	const { instance, accounts } = useSafeMsal() as any;
 	const isAuthenticated = useSafeIsAuthenticated();
-	const [currentView, setCurrentView] = useState<'chat' | 'admin'>('chat');
+	const [currentView, setCurrentView] = useState<'chat' | 'admin' | 'profile'>('chat');
 	const [sessions, setSessions] = useState<ChatSession[]>([]);
 	const [folders, setFolders] = useState<Folder[]>([]);
 	const [currentSessionId, setCurrentSessionId] = useState<string | null>(() => {
@@ -2328,6 +2329,16 @@ const App = () => {
 		);
 	}
 
+	if (currentView === 'profile') {
+		return (
+			<Profile
+				onBack={() => setCurrentView('chat')}
+				isSidebarOpen={isSidebarOpen}
+				onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+			/>
+		);
+	}
+
 	if (currentView === 'admin') {
 		return (
 			<Admin
@@ -2632,13 +2643,22 @@ const App = () => {
 						</button>
 
 						{process.env.USE_MSAL === 'true' && isAuthenticated && (
-							<button
-								onClick={handleLogout}
-								className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-colors"
-							>
-								<LogOut className="w-4 h-4" />
-								<span>Log Out</span>
-							</button>
+							<>
+								<button
+									onClick={() => setCurrentView('profile')}
+									className="w-full flex items-center gap-2 px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-card-hover rounded-xl transition-colors"
+								>
+									<User className="w-4 h-4" />
+									<span>Profile</span>
+								</button>
+								<button
+									onClick={handleLogout}
+									className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-colors"
+								>
+									<LogOut className="w-4 h-4" />
+									<span>Log Out</span>
+								</button>
+							</>
 						)}
 					</div>
 				</aside>
