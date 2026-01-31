@@ -76,7 +76,8 @@ export const useWorkflowBuilder = ({ workflows, setWorkflows, currentUser }: Use
 				id: Date.now().toString(),
 				name: workflowForm.name!,
 				description: workflowForm.description || '',
-				steps: workflowForm.steps || []
+				steps: workflowForm.steps || [],
+				isSystem: currentUser === 'System' ? true : undefined
 			};
 			setWorkflows(prev => [...prev, savedWorkflow]);
 		}

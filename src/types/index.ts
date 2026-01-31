@@ -144,6 +144,7 @@ export interface Workflow {
 	description: string;
 	steps: WorkflowStep[];
 	isSystem?: boolean;
+	userId?: string;
 }
 
 export type DatabaseSourceType = 'csv_upload' | 'manual_entry' | 'azure_ai_search';

@@ -3375,6 +3375,7 @@ const App = () => {
 					handleStartEditingWorkflow={handleStartEditingWorkflow}
 					setWorkflowToDelete={setWorkflowToDelete}
 					playWorkflow={playWorkflow}
+					allowSystemDelete={false}
 				/>
 
 				<PersonaModal

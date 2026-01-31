@@ -25,6 +25,7 @@ interface WorkflowBuilderModalProps {
 	handleStartEditingWorkflow: (workflow: Workflow) => void;
 	setWorkflowToDelete: (id: string | null) => void;
 	playWorkflow: (workflow: Workflow) => void;
+	allowSystemDelete?: boolean;
 }
 
 const WorkflowBuilderModal = ({
@@ -48,7 +49,8 @@ const WorkflowBuilderModal = ({
 	workflows,
 	handleStartEditingWorkflow,
 	setWorkflowToDelete,
-	playWorkflow
+	playWorkflow,
+	allowSystemDelete
 }: WorkflowBuilderModalProps) => {
 	const [activePromptSearchStepId, setActivePromptSearchStepId] = useState<string | null>(null);
 	const [promptLibrarySearchQuery, setPromptLibrarySearchQuery] = useState('');
@@ -110,23 +112,27 @@ const WorkflowBuilderModal = ({
 													<h3 className="text-lg font-bold truncate">{wf.name}</h3>
 												</div>
 												<div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-													<button
-														onClick={() => handleStartEditingWorkflow(wf)}
-														className="p-2 text-secondary hover:text-primary rounded-lg hover:bg-card-hover"
-													>
-														<Edit2 className="w-4 h-4" />
-													</button>
-													{!wf.isSystem ? (
-														<button
-															onClick={() => setWorkflowToDelete(wf.id)}
-															className="p-2 text-secondary hover:text-red-400 rounded-lg hover:bg-card-hover"
-														>
-															<Trash2 className="w-4 h-4" />
-														</button>
-													) : (
+
+													{(wf.userId === 'System' && !allowSystemDelete) ? (
 														<div title="System workflows cannot be deleted" className="p-2 text-secondary opacity-50 cursor-not-allowed">
 															<Lock className="w-4 h-4" />
 														</div>
+													) : (
+														<>
+															<button
+																onClick={() => handleStartEditingWorkflow(wf)}
+																className="p-2 text-secondary hover:text-primary rounded-lg hover:bg-card-hover"
+															>
+																<Edit2 className="w-4 h-4" />
+															</button>
+
+															<button
+																onClick={() => setWorkflowToDelete(wf.id)}
+																className="p-2 text-secondary hover:text-red-400 rounded-lg hover:bg-card-hover"
+															>
+																<Trash2 className="w-4 h-4" />
+															</button>
+														</>
 													)}
 												</div>
 											</div>

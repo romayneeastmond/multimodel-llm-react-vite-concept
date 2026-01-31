@@ -73,7 +73,7 @@ const Admin = ({ onBack, isSidebarOpen, onToggleSidebar, personas, libraryPrompt
 		if (config.endpoint && config.key) {
 			try {
 				const workflows = await listWorkflows(config, 'System');
-				setSystemWorkflows(workflows);
+				setSystemWorkflows(workflows.map(w => ({ ...w, isSystem: true })));
 			} catch (error) {
 				console.error("Failed to fetch system workflows:", error);
 			} finally {
@@ -366,6 +366,7 @@ const Admin = ({ onBack, isSidebarOpen, onToggleSidebar, personas, libraryPrompt
 					handleStartEditingWorkflow={handleStartEditingWorkflow}
 					setWorkflowToDelete={setWorkflowToDelete}
 					playWorkflow={handlePlayAndClose}
+					allowSystemDelete={true}
 				/>
 			)}
 
