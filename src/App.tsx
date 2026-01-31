@@ -3213,7 +3213,7 @@ const App = () => {
 																								onBranch={(id, m, cw) => initiateBranch(id, m, cw)}
 																								onRegenClick={(e, msgId, mdl) => setRegenMenuOpen(prev => prev?.msgId === msgId && prev.model === mdl ? null : { msgId, model: mdl })}
 																								onVersionChange={handleVersionChange}
-																								isCompact={Object.keys(msg.responses || {}).length >= 3}
+																								isCompact={Object.keys(msg.responses || {}).length >= 2}
 																								readOnlyMode={readOnlyMode}
 																								currentSessionId={currentSessionId}
 																								sessions={sessions}
