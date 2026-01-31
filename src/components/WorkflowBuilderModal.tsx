@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ArrowUp, ArrowDown, Trash2, MessageSquare, FileUp, UserCircle, Cpu, Database, Sparkles, LinkIcon, FileOutput, ChevronDown, Book, Search, Check, Layers, Play, Edit2, Plus, Workflow as WorkflowIcon, Lock } from 'lucide-react';
+import { X, ArrowUp, ArrowDown, Trash2, MessageSquare, FileUp, UserCircle, Cpu, Database, Sparkles, LinkIcon, FileOutput, ChevronDown, Book, Search, Check, Layers, Play, Edit2, Plus, Users, Workflow as WorkflowIcon, Lock } from 'lucide-react';
 import { Workflow, WorkflowStep, MultiModel, Persona, MCPTool, LibraryPrompt, DatabaseSource, WorkflowStepType } from '../types/index';
 import { AVAILABLE_MODELS } from '../config/constants';
 
@@ -26,6 +26,8 @@ interface WorkflowBuilderModalProps {
 	setWorkflowToDelete: (id: string | null) => void;
 	playWorkflow: (workflow: Workflow) => void;
 	allowSystemDelete?: boolean;
+	userGroups?: string[];
+	isMsalEnabled?: boolean;
 }
 
 const WorkflowBuilderModal = ({
@@ -50,12 +52,31 @@ const WorkflowBuilderModal = ({
 	handleStartEditingWorkflow,
 	setWorkflowToDelete,
 	playWorkflow,
-	allowSystemDelete
+	allowSystemDelete,
+	userGroups,
+	isMsalEnabled
 }: WorkflowBuilderModalProps) => {
 	const [activePromptSearchStepId, setActivePromptSearchStepId] = useState<string | null>(null);
 	const [promptLibrarySearchQuery, setPromptLibrarySearchQuery] = useState('');
 
 	if (!isOpen) return null;
+
+	const filteredWorkflows = workflows.filter(wf => {
+		if (allowSystemDelete) return true;
+
+		const hasGroups = wf.allowedGroups && wf.allowedGroups.length > 0;
+		if (!isMsalEnabled) {
+			if (hasGroups) return false;
+			return true;
+		} else {
+			if (hasGroups) {
+				if (!userGroups || userGroups.length === 0) return false;
+
+				return wf.allowedGroups!.some(g => userGroups.some(ug => ug.toLowerCase() === g.toLowerCase()));
+			}
+			return true;
+		}
+	});
 
 	return (
 		<div className="fixed inset-0 z-[60] bg-app flex flex-col animate-in zoom-in-95 duration-200">
@@ -102,7 +123,7 @@ const WorkflowBuilderModal = ({
 								</div>
 							) : (
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-									{[...workflows].sort((a, b) => a.name.localeCompare(b.name)).map(wf => (
+									{[...filteredWorkflows].sort((a, b) => a.name.localeCompare(b.name)).map(wf => (
 										<div key={wf.id} className="group bg-card border border-border rounded-2xl p-6 hover:shadow-xl transition-all relative flex flex-col h-full">
 											<div className="flex justify-between items-center mb-4 min-w-0">
 												<div className="flex items-center gap-3 min-w-0">
@@ -112,7 +133,6 @@ const WorkflowBuilderModal = ({
 													<h3 className="text-lg font-bold truncate">{wf.name}</h3>
 												</div>
 												<div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-
 													{(wf.userId === 'System' && !allowSystemDelete) ? (
 														<div title="System workflows cannot be deleted" className="p-2 text-secondary opacity-50 cursor-not-allowed">
 															<Lock className="w-4 h-4" />
@@ -137,6 +157,15 @@ const WorkflowBuilderModal = ({
 												</div>
 											</div>
 											<p className="text-sm text-secondary line-clamp-2 mb-6 flex-1">{wf.description}</p>
+											{allowSystemDelete && wf.allowedGroups && wf.allowedGroups.length > 0 && (
+												<div className="flex flex-wrap gap-1 mb-4">
+													{wf.allowedGroups.map(group => (
+														<span key={group} className="text-[10px] bg-secondary/10 text-secondary px-1.5 py-0.5 rounded border border-border flex items-center gap-1" title="Allowed Group">
+															<Users className="w-3 h-3" /> {group}
+														</span>
+													))}
+												</div>
+											)}
 											<div className="flex items-center justify-between mt-auto">
 												<span className="text-xs text-secondary font-medium bg-panel px-2.5 py-1 rounded-lg border border-border">
 													{wf.steps.length} {wf.steps.length === 1 ? 'Step' : 'Steps'}

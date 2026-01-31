@@ -3375,6 +3375,8 @@ const App = () => {
 					handleStartEditingWorkflow={handleStartEditingWorkflow}
 					setWorkflowToDelete={setWorkflowToDelete}
 					playWorkflow={playWorkflow}
+					userGroups={accounts?.[0]?.idTokenClaims?.groups || []}
+					isMsalEnabled={process.env.USE_MSAL === 'true'}
 					allowSystemDelete={false}
 				/>
 

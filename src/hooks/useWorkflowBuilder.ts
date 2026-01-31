@@ -63,13 +63,11 @@ export const useWorkflowBuilder = ({ workflows, setWorkflows, currentUser }: Use
 		let savedWorkflow: Workflow;
 
 		if (editingWorkflowId) {
-			setWorkflows(prev => prev.map(w => {
-				if (w.id === editingWorkflowId) {
-					savedWorkflow = { ...w, ...workflowForm } as Workflow;
-					return savedWorkflow;
-				}
-				return w;
-			}));
+			const existingWorkflow = workflows.find(w => w.id === editingWorkflowId);
+			if (existingWorkflow) {
+				savedWorkflow = { ...existingWorkflow, ...workflowForm } as Workflow;
+				setWorkflows(prev => prev.map(w => w.id === editingWorkflowId ? savedWorkflow : w));
+			}
 			setEditingWorkflowId(null);
 		} else {
 			savedWorkflow = {

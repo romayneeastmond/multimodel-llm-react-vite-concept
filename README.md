@@ -174,6 +174,7 @@ npm run dev
 ✅ **Logout Button**: "Log Out" button appears in the sidebar footer  
 ✅ **No Default User**: The `default_user` account is automatically disabled  
 ✅ **Persistent Sessions**: User identity persists across browser refreshes
+✅ **Workflow Access Control**: System workflows can be restricted to specific Entra AD Security Groups (Admin only)
 
 **Important Notes:**
 
