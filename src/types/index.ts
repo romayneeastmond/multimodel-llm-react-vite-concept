@@ -94,6 +94,7 @@ export interface ChatSession {
 	currentWorkflowStep?: number | null;
 	isShared?: boolean;
 	groupId?: string;
+	isPinned?: boolean;
 }
 
 export interface CanvasBlock {

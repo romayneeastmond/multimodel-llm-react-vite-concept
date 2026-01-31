@@ -12,12 +12,11 @@ import {
 	Send, Paperclip, Cpu, ChevronDown, ChevronRight, Box, Check, FileText, X, Bot, Menu, SquarePen, ArrowDown, Copy, Download, CheckCheck, Share, Trash2,
 	Edit2, FileJson, Folder as FolderIcon, FolderOpen, FolderPlus, Plus, MessageSquare, Sparkles, RefreshCw, Maximize2, Minimize2, List, History, Mic,
 	Layout, Sun, Moon, UserCircle, Book, Search, PlusCircle, Heart, Workflow as WorkflowIcon, Activity, UploadCloud, FileDown, Database, ShieldCheck, Briefcase,
-	Loader2, Users, LogOut, User
+	Loader2, Users, LogOut, User, Pin, PinOff
 } from 'lucide-react';
 import { AVAILABLE_MODELS, MCP_SERVER_CONFIGS, DEFAULT_PERSONAS, DEFAULT_LIBRARY_PROMPTS, SUGGESTIONS } from './config/constants';
 import { MultiModel, Message, AttachedFile, MCPTool, ModelResponse, ChatSession, Folder, Persona, LibraryPrompt, Workflow, DatabaseSource } from './types/index';
 import { copyToClipboard, getCookie, setCookie } from './utils/chatUtils';
-import { fetchUserGroups } from './services/graphService';
 import { generateModelResponse, searchAzureAISearch } from './services/multiModelService';
 import { saveSharedSession, getSharedSession, listSharedSessions, deleteSharedSession, saveFolder, deleteFolder, listFolders, savePersona, deletePersona, listPersonas, listLibraryPrompts, listWorkflows, listDatabaseSources, CosmosConfig } from './services/cosmosService';
 import { getContentFromWebsite, getContentFromDocuments, getContentForWord, getContentForPDF, getContentForPowerPoint, removeDocumentCache, setDocumentCache } from './services/conversationalModelService';
@@ -1194,10 +1193,16 @@ const App = () => {
 
 	const groupSessions = (sessionsToGroup: ChatSession[]) => {
 		const groups: { title: string; sessions: ChatSession[] }[] = [];
+
+		const pinned = sessionsToGroup.filter(s => s.isPinned).sort((a, b) => b.timestamp - a.timestamp);
+		if (pinned.length > 0) {
+			groups.push({ title: 'Pinned', sessions: pinned });
+		}
+
 		const now = new Date();
 		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
-		const sorted = [...sessionsToGroup].sort((a, b) => b.timestamp - a.timestamp);
+		const sorted = sessionsToGroup.filter(s => !s.isPinned).sort((a, b) => b.timestamp - a.timestamp);
 
 		const buckets = {
 			today: [] as ChatSession[],
@@ -1493,6 +1498,21 @@ const App = () => {
 				}
 			}
 			setEditingSessionId(null);
+		}
+	};
+
+	const handleTogglePin = (e: React.MouseEvent, sessionId: string) => {
+		e.stopPropagation();
+		const session = sessions.find(s => s.id === sessionId);
+		if (session) {
+			const updatedSession = { ...session, isPinned: !session.isPinned };
+			setSessions(prev => prev.map(s => s.id === sessionId ? updatedSession : s));
+
+			const config = getCosmosConfig();
+			if (config.endpoint && config.key) {
+				const partitionKey = (updatedSession.isShared && updatedSession.groupId) ? updatedSession.groupId : currentUser;
+				if (partitionKey) saveSharedSession(config, updatedSession, partitionKey).catch(console.error);
+			}
 		}
 	};
 
@@ -2294,6 +2314,7 @@ const App = () => {
 			)}
 			{!editingSessionId && !readOnlyMode && (
 				<div className="absolute right-2 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1 bg-transparent z-10">
+					<button onClick={(e) => handleTogglePin(e, session.id)} className="p-1.5 text-secondary hover:text-accent bg-transparent transition-colors" title={session.isPinned ? "Unpin" : "Pin"}>{session.isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}</button>
 					<button onClick={(e) => handleStartEditing(e, session)} className="p-1.5 text-secondary hover:text-primary bg-transparent transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
 					<button onClick={(e) => initiateDeleteSession(e, session.id)} className="p-1.5 text-secondary hover:text-red-400 bg-transparent transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
 				</div>
