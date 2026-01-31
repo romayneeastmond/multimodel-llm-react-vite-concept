@@ -69,6 +69,7 @@ const App = () => {
 	});
 
 	const [workflows, setWorkflows] = useState<Workflow[]>([]);
+	const [userGroups, setUserGroups] = useState<string[]>([]);
 
 	const [currentUser, setCurrentUser] = useState<string>(() => {
 		if (process.env.USE_MSAL === 'true') {
@@ -142,6 +143,45 @@ const App = () => {
 			window.removeEventListener('scroll', resetTimer);
 		};
 	}, []);
+
+	useEffect(() => {
+		const fetchUserGroups = async () => {
+			if (process.env.USE_MSAL !== 'true' || !isAuthenticated || !instance || !accounts[0]) return;
+
+			try {
+				const response = await instance.acquireTokenSilent({
+					...loginRequest,
+					account: accounts[0]
+				});
+
+				const headers = new Headers();
+				const bearer = `Bearer ${response.accessToken}`;
+				headers.append("Authorization", bearer);
+
+				const options = {
+					method: "GET",
+					headers: headers
+				};
+
+				const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me/transitiveMemberOf/microsoft.graph.group?$select=id,displayName", options);
+
+				if (graphResponse.ok) {
+					const data = await graphResponse.json();
+					if (data.value) {
+						// @ts-ignore
+						const ids = data.value.map(g => g.id);
+						// @ts-ignore
+						const names = data.value.map(g => g.displayName);
+						setUserGroups([...ids, ...names].filter(Boolean));
+					}
+				}
+			} catch (err) {
+				console.error("Failed to fetch user groups from Graph:", err);
+			}
+		};
+
+		fetchUserGroups();
+	}, [isAuthenticated, instance, accounts]);
 
 	const [isShareLoading, setIsShareLoading] = useState(() => {
 		if (typeof window !== 'undefined') {
@@ -3375,7 +3415,7 @@ const App = () => {
 					handleStartEditingWorkflow={handleStartEditingWorkflow}
 					setWorkflowToDelete={setWorkflowToDelete}
 					playWorkflow={playWorkflow}
-					userGroups={accounts?.[0]?.idTokenClaims?.groups || []}
+					userGroups={userGroups}
 					isMsalEnabled={process.env.USE_MSAL === 'true'}
 					allowSystemDelete={false}
 				/>
