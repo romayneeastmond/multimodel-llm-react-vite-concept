@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, CheckCheck, Square, Volume2, RefreshCw, GitFork, Workflow as WorkflowIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Copy, CheckCheck, Square, Volume2, RefreshCw, GitFork, Workflow as WorkflowIcon, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { copyToClipboard } from '../utils/chatUtils';
 import { MultiModel, ModelResponse, ChatSession } from '../types/index';
 
@@ -15,6 +15,7 @@ interface ResponseFooterProps {
 	readOnlyMode: boolean;
 	currentSessionId: string | null;
 	sessions: ChatSession[];
+	onDelete: () => void;
 }
 
 const ResponseFooter = ({
@@ -28,7 +29,8 @@ const ResponseFooter = ({
 	isCompact,
 	readOnlyMode,
 	currentSessionId,
-	sessions
+	sessions,
+	onDelete
 }: ResponseFooterProps) => {
 	const [copied, setCopied] = useState(false);
 	const [isSpeaking, setIsSpeaking] = useState(false);
@@ -102,6 +104,11 @@ const ResponseFooter = ({
 									</button>
 								</>
 							)}
+							<div className="h-3 w-px bg-border"></div>
+							<button onClick={onDelete} className="flex items-center gap-2 px-2 py-1 text-xs text-secondary hover:text-red-400 hover:bg-card-hover rounded transition-colors" title="Delete Response">
+								<Trash2 className="w-3.5 h-3.5" />
+								<span className={isCompact ? "hidden" : ""}>Delete</span>
+							</button>
 						</>
 					)}
 				</div>

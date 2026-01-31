@@ -19,7 +19,7 @@ This document outlines planned features, improvements, and ideas for the Multi-M
 | ✅ Microsft Entra Integration | Add permission sets to limit workflows to particular groups. | 
 | ☐ Annotation Inside Group Conversations | Allow comments to be added to group conversations, i.e. forum style. |
 | ✅ PWA Creation | Add manifest and service worker for Progressive Web App support. |
-| ☐ Delete Replies and Prompts | Although branching exists, user might want to delete parts of a converation |
+| ✅ Delete Replies and Prompts | Although branching exists, user might want to delete parts of a converation |
 | ☐ Merge Multi-Model Responses | Although the Canvas view exists, it might also be useful to merge within the conversation. |
 | ✅ Microsoft Teams Integration | Allow for integration with Microsoft Teams to allow for sharing of conversations 💬. |
 

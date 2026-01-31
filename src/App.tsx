@@ -57,6 +57,7 @@ const useSafeIsAuthenticated = () => {
 const App = () => {
 	const { instance, accounts } = useSafeMsal() as any;
 	const isAuthenticated = useSafeIsAuthenticated();
+
 	const [currentView, setCurrentView] = useState<'chat' | 'admin' | 'profile'>('chat');
 	const [sessions, setSessions] = useState<ChatSession[]>([]);
 	const [folders, setFolders] = useState<Folder[]>([]);
@@ -190,6 +191,7 @@ const App = () => {
 		}
 		return false;
 	});
+
 	const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
 	const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
 	const [editTitle, setEditTitle] = useState('');
@@ -223,6 +225,7 @@ const App = () => {
 		}
 		return 'home';
 	});
+
 	const [personas, setPersonas] = useState<Persona[]>([]);
 	const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(null);
 	const [isPersonaModalOpen, setIsPersonaModalOpen] = useState(false);
@@ -231,8 +234,11 @@ const App = () => {
 	const [personaToDelete, setPersonaToDelete] = useState<string | null>(null);
 	const [isPersonaQuickViewOpen, setIsPersonaQuickViewOpen] = useState(false);
 	const [quickPersonaSearch, setQuickPersonaSearch] = useState('');
+	const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
+	const [responseToDelete, setResponseToDelete] = useState<{ messageId: string, model: MultiModel } | null>(null);
 
 	const [libraryPrompts, setLibraryPrompts] = useState<LibraryPrompt[]>([]);
+
 	const {
 		isLibraryOpen,
 		setIsLibraryOpen,
@@ -263,6 +269,7 @@ const App = () => {
 	} = usePromptLibrary({ libraryPrompts, setLibraryPrompts, currentUser });
 
 	const [databaseSources, setDatabaseSources] = useState<DatabaseSource[]>([]);
+
 	const {
 		isDatabaseSourcesOpen,
 		setIsDatabaseSourcesOpen,
@@ -304,6 +311,7 @@ const App = () => {
 		serverToolsRef.current = serverTools;
 		guidedPromptMessageRef.current = guidedPromptMessage;
 	}, [sessions, workflows, databaseSources, serverTools, guidedPromptMessage]);
+
 	const [expandedMessageId, setExpandedMessageId] = useState<string | null>(null);
 
 	const [isChatSearchActive, setIsChatSearchActive] = useState(false);
@@ -1782,6 +1790,113 @@ const App = () => {
 		}
 	};
 
+	const initiateDeleteMessage = useCallback((messageId: string) => {
+		setMessageToDelete(messageId);
+	}, []);
+
+	const initiateDeleteResponse = useCallback((messageId: string, model: MultiModel) => {
+		setResponseToDelete({ messageId, model });
+	}, []);
+
+	const handleDeleteMessage = useCallback(async () => {
+		if (!messageToDelete) return;
+
+		const currentMsgs = messagesRef.current;
+		const msgToDelete = currentMsgs.find(m => m.id === messageToDelete);
+		if (!msgToDelete) {
+			setMessageToDelete(null);
+			return;
+		}
+
+		if (msgToDelete.attachments) {
+			for (const att of msgToDelete.attachments) {
+				if (att.id) {
+					await removeDocumentCache(att.id).catch(e => console.error("Failed to cleanup cache", e));
+				}
+			}
+		}
+
+		const newMessages = currentMsgs.filter(m => m.id !== messageToDelete);
+		setMessages(newMessages);
+
+		if (newMessages.length === 0) {
+			if (currentSessionId) {
+				const session = sessionsRef.current.find(s => s.id === currentSessionId);
+				if (session) {
+					const config = getCosmosConfig();
+					if (config.endpoint && config.key) {
+						const partitionKey = (session.isShared && session.groupId) ? session.groupId : currentUser;
+						try {
+							await deleteSharedSession(config, currentSessionId, partitionKey);
+						} catch (e) {
+							console.error("Failed to delete empty session", e);
+						}
+					}
+					setSessions(prev => prev.filter(s => s.id !== currentSessionId));
+				}
+			}
+			setCurrentSessionId(null);
+			setLandingView('home');
+		}
+
+		setMessageToDelete(null);
+	}, [messageToDelete, currentSessionId, currentUser, getCosmosConfig]);
+
+	const handleDeleteResponse = useCallback(async () => {
+		if (!responseToDelete) return;
+		const { messageId, model } = responseToDelete;
+
+		const currentMsgs = messagesRef.current;
+		const msg = currentMsgs.find(m => m.id === messageId);
+		if (!msg || !msg.responses) {
+			setResponseToDelete(null);
+			return;
+		}
+
+		const currentResponseCount = Object.keys(msg.responses).length;
+
+		if (currentResponseCount <= 1) {
+
+			if (msg.attachments) {
+				for (const att of msg.attachments) {
+					if (att.id) await removeDocumentCache(att.id).catch(e => console.error(e));
+				}
+			}
+			const newMessages = currentMsgs.filter(m => m.id !== messageId);
+			setMessages(newMessages);
+			if (newMessages.length === 0) {
+				if (currentSessionId) {
+					const session = sessionsRef.current.find(s => s.id === currentSessionId);
+					if (session) {
+						const config = getCosmosConfig();
+						if (config.endpoint && config.key) {
+							const partitionKey = (session.isShared && session.groupId) ? session.groupId : currentUser;
+							try { await deleteSharedSession(config, currentSessionId, partitionKey); } catch (e) { }
+						}
+						setSessions(prev => prev.filter(s => s.id !== currentSessionId));
+					}
+				}
+				setCurrentSessionId(null);
+				setLandingView('home');
+			}
+		} else {
+			setMessages(prev => {
+				const newMsgs = [...prev];
+				const idx = newMsgs.findIndex(m => m.id === messageId);
+				if (idx === -1) return prev;
+				const m = { ...newMsgs[idx] };
+				if (m.responses) {
+					const nr = { ...m.responses };
+					delete nr[model];
+					m.responses = nr;
+				}
+				newMsgs[idx] = m;
+				return newMsgs;
+			});
+		}
+		setResponseToDelete(null);
+	}, [responseToDelete, currentSessionId, currentUser, getCosmosConfig]);
+
 	const handleSendWithText = async (textOverride?: string, sessionIdOverride?: string, personaIdOverride?: string, modelOverride?: MultiModel) => {
 		let textToUse = textOverride !== undefined ? textOverride : input;
 		let autoAttachment: AttachedFile | null = null;
@@ -3005,6 +3120,13 @@ const App = () => {
 																	) : (
 																		<>
 																			<button
+																				onClick={() => initiateDeleteMessage(msg.id)}
+																				className="p-2 rounded-full transition-all shrink-0 text-secondary opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-card-hover"
+																				title="Delete Message"
+																			>
+																				<Trash2 className="w-4 h-4" />
+																			</button>
+																			<button
 																				onClick={() => handleToggleFavorite(msg.content)}
 																				className={`p-2 rounded-full transition-all shrink-0 ${isFavorited(msg.content)
 																					? 'text-gray-400 opacity-100'
@@ -3095,6 +3217,7 @@ const App = () => {
 																								readOnlyMode={readOnlyMode}
 																								currentSessionId={currentSessionId}
 																								sessions={sessions}
+																								onDelete={() => initiateDeleteResponse(msg.id, resp.model)}
 																							/>
 																							{regenMenuOpen?.msgId === msg.id && regenMenuOpen?.model === resp.model && (
 																								<div ref={regenMenuRef} className="absolute bottom-10 left-0 bg-card border border-border rounded-xl shadow-2xl z-[100] overflow-hidden min-w-[180px] p-1.5">
@@ -3492,6 +3615,32 @@ const App = () => {
 					message="This workflow and all its steps will be permanently removed."
 					onCancel={() => setWorkflowToDelete(null)}
 					onConfirm={confirmDeleteWorkflow}
+				/>
+
+				<DeleteConfirmModal
+					isOpen={!!messageToDelete}
+					title="Delete Message?"
+					message={
+						<span>
+							Are you sure you want to delete this message?<br /><br />
+							<span className="font-bold text-red-400">Warning:</span> Removing parts of a conversation can cause a disjointed context window for future responses.
+						</span>
+					}
+					onCancel={() => setMessageToDelete(null)}
+					onConfirm={handleDeleteMessage}
+				/>
+
+				<DeleteConfirmModal
+					isOpen={!!responseToDelete}
+					title="Delete Response?"
+					message={
+						<span>
+							Are you sure you want to delete this response?<br /><br />
+							<span className="font-bold text-red-400">Warning:</span> Removing parts of a conversation can cause a disjointed context window for future responses.
+						</span>
+					}
+					onCancel={() => setResponseToDelete(null)}
+					onConfirm={handleDeleteResponse}
 				/>
 
 				<BranchingModal
