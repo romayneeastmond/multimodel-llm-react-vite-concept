@@ -16,7 +16,7 @@ export interface AttachedFile {
 	id: string;
 	name: string;
 	type: string;
-	base64: string;
+	base64?: string;
 	content?: string;
 	statistics?: {
 		words?: number;

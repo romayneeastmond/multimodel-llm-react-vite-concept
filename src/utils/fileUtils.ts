@@ -31,7 +31,7 @@ export const base64ToBlob = (base64: string, type: string): Blob | null => {
 export const formatFileSize = (bytes: number): string => {
 	if (bytes === 0) return '0 Bytes';
 	const k = 1024;
-	const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+	const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
 	const i = Math.floor(Math.log(bytes) / Math.log(k));
 	return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 };
@@ -52,6 +52,8 @@ export const isDocumentFile = (file: AttachedFile): boolean => {
 		'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 		'application/vnd.ms-excel',
 		'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+		'application/vnd.ms-powerpoint',
+		'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 		'text/plain',
 		'text/csv'
 	];
