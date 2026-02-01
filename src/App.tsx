@@ -20,6 +20,7 @@ import { copyToClipboard, getCookie, setCookie } from './utils/chatUtils';
 import { generateModelResponse, searchAzureAISearch } from './services/multiModelService';
 import { saveSharedSession, getSharedSession, listSharedSessions, deleteSharedSession, saveFolder, deleteFolder, listFolders, savePersona, deletePersona, listPersonas, listLibraryPrompts, listWorkflows, listDatabaseSources, CosmosConfig } from './services/cosmosService';
 import { getContentFromWebsite, getContentFromDocuments, getContentForWord, getContentForPDF, getContentForPowerPoint, removeDocumentCache, setDocumentCache } from './services/conversationalModelService';
+import { fetchUserGroups } from './services/graphService';
 import { getSerpResults } from './services/serpApiService';
 import Admin from './components/Admin';
 import Profile from './components/Profile';
@@ -147,42 +148,20 @@ const App = () => {
 	}, []);
 
 	useEffect(() => {
-		const fetchUserGroups = async () => {
+		const getUserGroups = async () => {
 			if (process.env.USE_MSAL !== 'true' || !isAuthenticated || !instance || !accounts[0]) return;
 
 			try {
-				const response = await instance.acquireTokenSilent({
-					...loginRequest,
-					account: accounts[0]
-				});
-
-				const headers = new Headers();
-				const bearer = `Bearer ${response.accessToken}`;
-				headers.append("Authorization", bearer);
-
-				const options = {
-					method: "GET",
-					headers: headers
-				};
-
-				const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me/transitiveMemberOf/microsoft.graph.group?$select=id,displayName", options);
-
-				if (graphResponse.ok) {
-					const data = await graphResponse.json();
-					if (data.value) {
-						// @ts-ignore
-						const ids = data.value.map(g => g.id);
-						// @ts-ignore
-						const names = data.value.map(g => g.displayName);
-						setUserGroups([...ids, ...names].filter(Boolean));
-					}
-				}
+				const groups = await fetchUserGroups(instance, accounts[0]);
+				const ids = groups.map(g => g.id);
+				const names = groups.map(g => g.displayName);
+				setUserGroups([...ids, ...names].filter(Boolean));
 			} catch (err) {
-				console.error("Failed to fetch user groups from Graph:", err);
+				console.error("Failed to fetch user groups:", err);
 			}
 		};
 
-		fetchUserGroups();
+		getUserGroups();
 	}, [isAuthenticated, instance, accounts]);
 
 	const [isShareLoading, setIsShareLoading] = useState(() => {
