@@ -147,12 +147,6 @@ const App = () => {
 	}, []);
 
 	useEffect(() => {
-		setIsExportMenuOpen(false);
-		setIsModelSelectorOpen(false);
-		setIsMCPSelectorOpen(false);
-	}, [currentSessionId, currentView, currentFolderViewId]);
-
-	useEffect(() => {
 		const fetchUserGroups = async () => {
 			if (process.env.USE_MSAL !== 'true' || !isAuthenticated || !instance || !accounts[0]) return;
 
@@ -414,6 +408,27 @@ const App = () => {
 
 		return config;
 	}, []);
+
+	useEffect(() => {
+		setIsExportMenuOpen(false);
+		setIsModelSelectorOpen(false);
+		setIsMCPSelectorOpen(false);
+	}, [
+		currentSessionId,
+		currentView,
+		currentFolderViewId,
+		isBriefcaseOpen,
+		isCanvasOpen,
+		isPersonaModalOpen,
+		isWorkflowBuilderOpen,
+		isDatabaseSourcesOpen,
+		isLibraryOpen,
+		moveToSessionId,
+		branchingData,
+		isPersonaQuickViewOpen,
+		isPromptQuickViewOpen,
+		activeGroupId
+	]);
 
 	const chatEndRef = useRef<HTMLDivElement>(null);
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
