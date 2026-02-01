@@ -147,6 +147,12 @@ const App = () => {
 	}, []);
 
 	useEffect(() => {
+		setIsExportMenuOpen(false);
+		setIsModelSelectorOpen(false);
+		setIsMCPSelectorOpen(false);
+	}, [currentSessionId, currentView, currentFolderViewId]);
+
+	useEffect(() => {
 		const fetchUserGroups = async () => {
 			if (process.env.USE_MSAL !== 'true' || !isAuthenticated || !instance || !accounts[0]) return;
 
@@ -214,6 +220,7 @@ const App = () => {
 	const [selectedTools, setSelectedTools] = useState<MCPTool[]>([]);
 	const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
 	const [isMCPSelectorOpen, setIsMCPSelectorOpen] = useState(false);
+	const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
 	const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [showScrollButton, setShowScrollButton] = useState(false);
@@ -1685,6 +1692,83 @@ const App = () => {
 		URL.revokeObjectURL(url);
 	};
 
+	const handleExportChat = async (format: 'json' | 'text' | 'doc') => {
+		setIsExportMenuOpen(false);
+		if (!messages.length) return;
+
+		if (format === 'json') {
+			handleExport();
+			return;
+		}
+
+		let filename = `${sessions.find(s => s.id === currentSessionId)?.title || 'Chat Export'}-${Date.now()}`;
+		let textContent = "";
+
+		if (format === 'doc') {
+			let mdContent = `# ${sessions.find(s => s.id === currentSessionId)?.title || 'Chat Export'}\n\n`;
+			messages.forEach(m => {
+				const roleName = m.role === 'user' ? (m.userName || 'User') : 'Assistant';
+				mdContent += `### ${roleName}\n\n`;
+
+				if (m.role === 'assistant' && m.responses) {
+					const response = Object.values(m.responses).find((r: any) => r.status === 'success');
+					if (response) {
+						mdContent += `${(response as any).text}\n\n`;
+					} else {
+						mdContent += `*(No response)*\n\n`;
+					}
+				} else {
+					mdContent += `${m.content}\n\n`;
+				}
+				mdContent += `---\n\n`;
+			});
+
+			const html = await marked.parse(mdContent);
+			const blobResponse = await getContentForWord(html);
+			let blob: Blob;
+			if (blobResponse) {
+				blob = blobResponse;
+			} else {
+				const content = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'></head><body>${html}</body></html>`;
+				blob = new Blob(['\ufeff', content], { type: 'application/msword' });
+			}
+
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `${filename}.doc`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(url);
+			return;
+		}
+
+		messages.forEach(m => {
+			const roleName = m.role === 'user' ? (m.userName || 'User') : 'Assistant';
+			textContent += `[${roleName}]\n`;
+			if (m.role === 'assistant' && m.responses) {
+				const response = Object.values(m.responses).find((r: any) => r.status === 'success');
+				if (response) {
+					textContent += `Model: ${(response as any).model}\n${(response as any).text}\n`;
+				}
+			} else {
+				textContent += `${m.content}\n`;
+			}
+			textContent += "\n--------------------------------------------------\n\n";
+		});
+
+		const blob = new Blob([textContent], { type: 'text/plain' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `${filename}.txt`;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	};
+
 	const handleShare = async () => {
 		if (!currentSessionId) return;
 		const url = `${window.location.origin}${window.location.pathname}?share=${currentSessionId}`;
@@ -2938,13 +3022,44 @@ const App = () => {
 								<span className="hidden md:inline">Move To</span>
 							</button>
 						)}
-						<button
-							onClick={handleExport}
-							className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-primary hover:bg-card-hover rounded-xl transition-colors"
-						>
-							<FileJson className="w-4 h-4" />
-							<span className="hidden md:inline">Export</span>
-						</button>
+						<div className="relative">
+							<button
+								onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
+								className={`flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-primary hover:bg-card-hover rounded-xl transition-colors ${isExportMenuOpen ? 'bg-card-hover' : ''}`}
+							>
+								<FileDown className="w-4 h-4" />
+								<span className="hidden md:inline">Export</span>
+								<ChevronDown className="w-3 h-3" />
+							</button>
+							{isExportMenuOpen && (
+								<>
+									<div className="fixed inset-0 z-40 bg-transparent" onClick={() => setIsExportMenuOpen(false)} />
+									<div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-xl shadow-xl z-50 py-1 animate-in slide-in-from-top-2 duration-200">
+										<button
+											onClick={() => handleExportChat('doc')}
+											className="w-full text-left px-4 py-2 hover:bg-card-hover text-sm flex items-center gap-2 text-primary"
+										>
+											<FileText className="w-4 h-4 text-blue-500" />
+											<span>Word Document</span>
+										</button>
+										<button
+											onClick={() => handleExportChat('json')}
+											className="w-full text-left px-4 py-2 hover:bg-card-hover text-sm flex items-center gap-2 text-primary"
+										>
+											<FileJson className="w-4 h-4 text-yellow-500" />
+											<span>JSON Data</span>
+										</button>
+										<button
+											onClick={() => handleExportChat('text')}
+											className="w-full text-left px-4 py-2 hover:bg-card-hover text-sm flex items-center gap-2 text-primary"
+										>
+											<List className="w-4 h-4 text-gray-500" />
+											<span>Plain Text</span>
+										</button>
+									</div>
+								</>
+							)}
+						</div>
 						<button
 							onClick={openCanvas}
 							className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-primary hover:bg-card-hover rounded-xl transition-colors"
