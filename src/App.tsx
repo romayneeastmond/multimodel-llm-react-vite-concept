@@ -17,6 +17,9 @@ import {
 import { AVAILABLE_MODELS, MCP_SERVER_CONFIGS, DEFAULT_PERSONAS, DEFAULT_LIBRARY_PROMPTS, SUGGESTIONS } from './config/constants';
 import { MultiModel, Message, AttachedFile, MCPTool, ModelResponse, ChatSession, Folder, Persona, LibraryPrompt, Workflow, DatabaseSource } from './types/index';
 import { copyToClipboard, getCookie, setCookie } from './utils/chatUtils';
+import { formatTime, formatSessionDate } from './utils/dateUtils';
+import { getCosmosConfig, getEffectiveUser, getUserDisplayName, setUserData, getStoredUsername, setActiveGroupId as saveActiveGroupId, setActivePersonaId as saveActivePersonaId, getActiveGroupId, getActivePersonaId } from './utils/storageUtils';
+import { getUrlParam, updateUrlParams } from './utils/urlUtils';
 import { generateModelResponse, searchAzureAISearch } from './services/multiModelService';
 import { saveSharedSession, getSharedSession, listSharedSessions, deleteSharedSession, saveFolder, deleteFolder, listFolders, savePersona, deletePersona, listPersonas, listLibraryPrompts, listWorkflows, listDatabaseSources, CosmosConfig } from './services/cosmosService';
 import { getContentFromWebsite, getContentFromDocuments, getContentForWord, getContentForPDF, getContentForPowerPoint, removeDocumentCache, setDocumentCache } from './services/conversationalModelService';

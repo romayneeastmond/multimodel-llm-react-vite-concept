@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Database, Server, ShieldCheck, Play, RefreshCw, CheckCircle, ArrowLeft, Lock, Menu, DatabaseZap, LayoutGrid, AlertCircle, Workflow as WorkflowIcon, Layers, Edit2, Trash2, Users } from 'lucide-react';
 import { testCosmosConnection, installCosmosSchema, listWorkflows, getCosmosConfig } from '../services/cosmosService';
+import { setCosmosConfig } from '../utils/storageUtils';
 import { Workflow, Persona, LibraryPrompt, DatabaseSource, MCPTool } from '../types/index';
 import { useWorkflowBuilder } from '../hooks/useWorkflowBuilder';
 import WorkflowBuilderModal from './WorkflowBuilderModal';
@@ -56,9 +57,7 @@ const Admin = ({ onBack, isSidebarOpen, onToggleSidebar, personas, libraryPrompt
 	});
 
 	useEffect(() => {
-		localStorage.setItem('azure_cosmos_endpoint', endpoint);
-		localStorage.setItem('azure_cosmos_key', key);
-		localStorage.setItem('azure_cosmos_db_id', dbId);
+		setCosmosConfig(endpoint, key, dbId);
 	}, [endpoint, key, dbId]);
 
 	useEffect(() => {

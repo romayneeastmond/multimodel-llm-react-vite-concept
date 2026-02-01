@@ -1,4 +1,6 @@
 import { AttachedFile } from '../types/index';
+import { fetchJSON, fetchBlob, fetchFormData, fetchWithParams } from '../utils/fetchUtils';
+import { attachedFilesToFormData, mapFilesToPayload } from '../utils/fileUtils';
 
 const AZURE_CACHE_ENDPOINT = process.env.AZURE_CACHE_ENDPOINT;
 const CONTENT_COMPARISON_ENDPOINT = process.env.CONTENT_COMPARISON_ENDPOINT;
@@ -14,135 +16,35 @@ const CONTENT_TRANSLATION_ENDPOINT = process.env.CONTENT_TRANSLATION_ENDPOINT;
 const WEB_SCRAPER_ENDPOINT = process.env.WEB_SCRAPER_ENDPOINT;
 
 export const getComparisonFromContent = async (prompt: string, files: AttachedFile[]): Promise<any[]> => {
-	try {
-		const endpoint = `${CONTENT_COMPARISON_ENDPOINT}`;
-
-		const payload = files.map(file => ({
-			fileName: file.name,
-			content: file.content || ''
-		}));
-
-		const response = await fetch(endpoint, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ prompt, files: payload })
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status}`);
-		}
-
-		return await response.json();
-	} catch (error: any) {
-		console.error("Content extraction error:", error);
-		return [];
-	}
+	const payload = mapFilesToPayload(files);
+	const result = await fetchJSON<any[]>(
+		`${CONTENT_COMPARISON_ENDPOINT}`,
+		{ method: 'POST', body: { prompt, files: payload } },
+		'Content comparison'
+	);
+	return result || [];
 };
 
 export const getContentForWord = async (content: string): Promise<any> => {
-	try {
-		const endpoint = `${CONTENT_EXPORT_WORD}`;
-		const response = await fetch(endpoint, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ content })
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status}`);
-		}
-
-		return await response.blob();
-	} catch (error: any) {
-		console.error("Content extraction error:", error);
-		return null;
-	}
+	return await fetchBlob(`${CONTENT_EXPORT_WORD}`, { content }, 'Word export');
 };
 
 export const getContentForPDF = async (content: string): Promise<any> => {
-	try {
-		const endpoint = `${CONTENT_EXPORT_PDF}`;
-		const response = await fetch(endpoint, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ content })
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status}`);
-		}
-
-		return await response.blob();
-	} catch (error: any) {
-		console.error("Content extraction error:", error);
-		return null;
-	}
+	return await fetchBlob(`${CONTENT_EXPORT_PDF}`, { content }, 'PDF export');
 };
 
 export const getContentForPowerPoint = async (slides: string[]): Promise<any> => {
-	try {
-		const endpoint = `${CONTENT_EXPORT_POWERPOINT}`;
-		const response = await fetch(endpoint, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ slides })
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status}`);
-		}
-
-		return await response.blob();
-	} catch (error: any) {
-		console.error("Content extraction error:", error);
-		return null;
-	}
+	return await fetchBlob(`${CONTENT_EXPORT_POWERPOINT}`, { slides }, 'PowerPoint export');
 };
 
 export const getContentFromDocuments = async (files: AttachedFile[]): Promise<any[]> => {
-	try {
-		const endpoint = `${CONTENT_EXTRACTOR_ENDPOINT}`;
-		const formData = new FormData();
-
-		files.forEach(file => {
-			if (file.base64) {
-				try {
-					const byteCharacters = atob(file.base64.split(',')[1]);
-					const byteNumbers = new Array(byteCharacters.length);
-					for (let i = 0; i < byteCharacters.length; i++) {
-						byteNumbers[i] = byteCharacters.charCodeAt(i);
-					}
-					const byteArray = new Uint8Array(byteNumbers);
-					const blob = new Blob([byteArray], { type: file.type });
-					formData.append('files', blob, file.name);
-				} catch (e) {
-					console.error("Error converting file to blob:", file.name, e);
-				}
-			}
-		});
-
-		const response = await fetch(endpoint, {
-			method: 'POST',
-			body: formData
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status}`);
-		}
-
-		return await response.json();
-	} catch (error: any) {
-		console.error("Content extraction error:", error);
-		return [];
-	}
+	const formData = attachedFilesToFormData(files);
+	const result = await fetchFormData<any[]>(
+		`${CONTENT_EXTRACTOR_ENDPOINT}`,
+		formData,
+		'Content extraction'
+	);
+	return result || [];
 };
 
 export const getContentFromWebsite = async (url: string, includeMeta: boolean = false): Promise<string> => {
@@ -190,29 +92,12 @@ export const getContentFromWebsite = async (url: string, includeMeta: boolean = 
 	}
 };
 
-
-
-
-
 export const getDocumentCache = async (documentId: string) => {
-	try {
-		const endpoint = `${AZURE_CACHE_ENDPOINT}/cache/get?key=${documentId}`;
-		const response = await fetch(endpoint, {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status}`);
-		}
-
-		return await response.json();
-	} catch (error: any) {
-		console.error("Cache error:", error);
-		return null;
-	}
+	return await fetchJSON(
+		`${AZURE_CACHE_ENDPOINT}/cache/get?key=${documentId}`,
+		{ method: 'GET' },
+		'Cache get'
+	);
 };
 
 export const getResultsFromDocuments = async (prompt: string, files: AttachedFile[]): Promise<any[]> => {
@@ -293,122 +178,47 @@ export const getResultsClausesFromDocuments = async (clauses: any[], files: Atta
 };
 
 export const getResultsExtractionsFromDocuments = async (prompt: string, files: AttachedFile[]): Promise<any[]> => {
-	try {
-		const endpoint = `${CONTENT_RESULTS_EXTRACTIONS_ENDPOINT}`;
-
-		const payload = files.map(file => ({
-			fileName: file.name,
-			content: file.content || ''
-		}));
-
-		const response = await fetch(endpoint, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ query: prompt, files: payload })
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status}`);
-		}
-
-		return await response.json();
-	} catch (error: any) {
-		console.error("Content extraction error:", error);
-		return [];
-	}
+	const payload = mapFilesToPayload(files);
+	const result = await fetchJSON<any[]>(
+		`${CONTENT_RESULTS_EXTRACTIONS_ENDPOINT}`,
+		{ method: 'POST', body: { query: prompt, files: payload } },
+		'Content extraction'
+	);
+	return result || [];
 };
 
 export const getSummaryFromDocuments = async (files: AttachedFile[]): Promise<any[]> => {
-	try {
-		const endpoint = `${CONTENT_SUMMARIZATION_ENDPOINT}`;
-
-		const payload = files.map(file => ({
-			fileName: file.name,
-			content: file.content || ''
-		}));
-
-		const response = await fetch(endpoint, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ files: payload })
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status}`);
-		}
-
-		return await response.json();
-	} catch (error: any) {
-		console.error("Content extraction error:", error);
-		return [];
-	}
+	const payload = mapFilesToPayload(files);
+	const result = await fetchJSON<any[]>(
+		`${CONTENT_SUMMARIZATION_ENDPOINT}`,
+		{ method: 'POST', body: { files: payload } },
+		'Content summarization'
+	);
+	return result || [];
 };
 
 export const getTranslationFromDocuments = async (prompt: string, files: AttachedFile[]): Promise<any[]> => {
-	try {
-		const endpoint = `${CONTENT_TRANSLATION_ENDPOINT}`;
-
-		const payload = files.map(file => ({
-			fileName: file.name,
-			content: file.content || ''
-		}));
-
-		const response = await fetch(endpoint, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ prompt, files: payload })
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status}`);
-		}
-
-		return await response.json();
-	} catch (error: any) {
-		console.error("Content extraction error:", error);
-		return [];
-	}
+	const payload = mapFilesToPayload(files);
+	const result = await fetchJSON<any[]>(
+		`${CONTENT_TRANSLATION_ENDPOINT}`,
+		{ method: 'POST', body: { prompt, files: payload } },
+		'Content translation'
+	);
+	return result || [];
 };
 
 export const removeDocumentCache = async (documentId: string) => {
-	try {
-		const endpoint = `${AZURE_CACHE_ENDPOINT}/cache/delete?key=${documentId}`;
-		const response = await fetch(endpoint, {
-			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status}`);
-		}
-	} catch (error: any) {
-		console.error("Cache error:", error);
-	}
+	await fetchJSON(
+		`${AZURE_CACHE_ENDPOINT}/cache/delete?key=${documentId}`,
+		{ method: 'DELETE' },
+		'Cache delete'
+	);
 };
 
 export const setDocumentCache = async (documentId: string, content: string) => {
-	try {
-		const endpoint = `${AZURE_CACHE_ENDPOINT}/cache/set`;
-		const response = await fetch(endpoint, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ key: documentId, value: content })
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status}`);
-		}
-	} catch (error: any) {
-		console.error("Cache error:", error);
-	}
+	await fetchJSON(
+		`${AZURE_CACHE_ENDPOINT}/cache/set`,
+		{ method: 'POST', body: { key: documentId, value: content } },
+		'Cache set'
+	);
 };

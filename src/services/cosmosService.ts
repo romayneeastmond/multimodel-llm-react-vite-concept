@@ -1,5 +1,6 @@
 import { CosmosClient } from "@azure/cosmos";
 import schema from "./cosmos_schema.json";
+import { getCosmosConfig as getStoredCosmosConfig } from "../utils/storageUtils";
 
 export interface CosmosConfig {
 	endpoint: string;
@@ -240,21 +241,4 @@ export const listDatabaseSources = async (config: CosmosConfig, partitionKey: st
 	}));
 };
 
-export const getCosmosConfig = (): CosmosConfig => {
-	const getEnv = (key: string) => {
-		try {
-			// @ts-ignore
-			return typeof process !== 'undefined' ? process.env[key] : undefined;
-		} catch {
-			return undefined;
-		}
-	};
-
-	if (typeof window === 'undefined') return { endpoint: '', key: '', databaseId: '' };
-
-	return {
-		endpoint: localStorage.getItem('azure_cosmos_endpoint') || getEnv('AZURE_COSMOS_ENDPOINT') || '',
-		key: localStorage.getItem('azure_cosmos_key') || getEnv('AZURE_COSMOS_KEY') || '',
-		databaseId: localStorage.getItem('azure_cosmos_db_id') || getEnv('AZURE_COSMOS_DB_ID') || 'ConversationDB'
-	};
-};
+export { getCosmosConfig } from "../utils/storageUtils";

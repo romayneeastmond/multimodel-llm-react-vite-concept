@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { AttachedFile, Message, ChatSession, DatabaseSource, MultiModel } from '../types/index';
 import { getResultsExtractionsFromDocuments, getResultsFromDocuments, getComparisonFromContent, getResultsClausesFromDocuments, getTranslationFromDocuments, removeDocumentCache, getContentFromDocuments, setDocumentCache, getDocumentCache } from '../services/conversationalModelService';
+import { getEffectiveUser } from '../utils/storageUtils';
 
 interface UseBriefcaseProps {
 	messages: Message[];
@@ -145,7 +146,7 @@ export const useBriefcase = ({
 					omissionNotice = `\n\n> **Document Limit Notice**: The following documents exceed the word limit (10,000 words) and were not added to the conversation context: ${fileList}. They are available for analysis in the **Document Briefcase**.`;
 				}
 
-				const effectiveUser = currentUser || (typeof window !== 'undefined' ? localStorage.getItem('chat_username') : undefined) || undefined;
+				const effectiveUser = getEffectiveUser(currentUser);
 				const fileCount = newAttachments.length;
 
 				const newMessage: Message = {
@@ -241,7 +242,7 @@ export const useBriefcase = ({
 					omissionNotice = `\n\n> **Document Limit Notice**: The following documents exceed the word limit (10,000 words) and were not added to the conversation context: ${fileList}. They are available for analysis in the **Document Briefcase**.`;
 				}
 
-				const effectiveUser = currentUser || (typeof window !== 'undefined' ? localStorage.getItem('chat_username') : undefined) || undefined;
+				const effectiveUser = getEffectiveUser(currentUser);
 				const fileCount = newAttachments.length;
 
 				const newMessage: Message = {
@@ -316,7 +317,7 @@ export const useBriefcase = ({
 				}
 				return file;
 			}));
-		const effectiveUser = currentUser || (typeof window !== 'undefined' ? localStorage.getItem('chat_username') : undefined) || undefined;
+		const effectiveUser = getEffectiveUser(currentUser);
 
 		try {
 			switch (activeBriefcaseTool) {
