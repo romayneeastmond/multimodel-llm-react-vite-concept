@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Database, Server, ShieldCheck, Play, RefreshCw, CheckCircle, ArrowLeft, Lock, Menu, DatabaseZap, LayoutGrid, AlertCircle, Workflow as WorkflowIcon, Layers, Edit2, Trash2, Users } from 'lucide-react';
+import { Database, Server, ShieldCheck, Play, RefreshCw, CheckCircle, ArrowLeft, Lock, Menu, DatabaseZap, LayoutGrid, AlertCircle, Workflow as WorkflowIcon, Layers, Edit2, Trash2, Users, Layout } from 'lucide-react';
 import { testCosmosConnection, installCosmosSchema, listWorkflows, getCosmosConfig } from '../services/cosmosService';
 import { setCosmosConfig } from '../utils/storageUtils';
 import { Workflow, Persona, LibraryPrompt, DatabaseSource, MCPTool } from '../types/index';
 import { useWorkflowBuilder } from '../hooks/useWorkflowBuilder';
 import WorkflowBuilderModal from './WorkflowBuilderModal';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import A2UICatalog from './A2UICatalog';
 
 interface AdminProps {
 	onBack: () => void;
@@ -20,7 +21,7 @@ interface AdminProps {
 }
 
 const Admin = ({ onBack, isSidebarOpen, onToggleSidebar, personas, libraryPrompts, databaseSources, serverTools, onPlayWorkflow }: AdminProps) => {
-	const [activeTab, setActiveTab] = useState<'cosmos' | 'workflows'>('cosmos');
+	const [activeTab, setActiveTab] = useState<'cosmos' | 'workflows' | 'catalog'>('cosmos');
 
 	const [isInstalling, setIsInstalling] = useState(false);
 	const [installStatus, setInstallStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -155,6 +156,13 @@ const Admin = ({ onBack, isSidebarOpen, onToggleSidebar, personas, libraryPrompt
 					>
 						<WorkflowIcon className="w-4 h-4" />
 						System Workflows
+					</button>
+					<button
+						onClick={() => setActiveTab('catalog')}
+						className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all ${activeTab === 'catalog' ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'text-secondary hover:text-primary hover:bg-card-hover'}`}
+					>
+						<Layout className="w-4 h-4" />
+						A2UI Catalog
 					</button>
 				</div>
 
@@ -345,38 +353,45 @@ const Admin = ({ onBack, isSidebarOpen, onToggleSidebar, personas, libraryPrompt
 							)}
 						</div>
 					)}
+					{activeTab === 'catalog' && (
+						<div className="h-full relative -m-6 md:-m-8">
+							<A2UICatalog onClose={() => setActiveTab('cosmos')} />
+						</div>
+					)}
 				</div>
 			</div>
 
-			{(isCreatingWorkflow || editingWorkflowId) && (
-				<WorkflowBuilderModal
-					isOpen={true}
-					onClose={() => {
-						setIsCreatingWorkflow(false);
-						setEditingWorkflowId(null);
-					}}
-					workflowForm={workflowForm}
-					setWorkflowForm={setWorkflowForm}
-					editingWorkflowId={editingWorkflowId}
-					setEditingWorkflowId={setEditingWorkflowId}
-					handleSaveWorkflow={handleSaveWorkflow}
-					isCreatingWorkflow={isCreatingWorkflow}
-					setIsCreatingWorkflow={setIsCreatingWorkflow}
-					addWorkflowStep={addWorkflowStep}
-					updateWorkflowStep={updateWorkflowStep}
-					removeWorkflowStep={removeWorkflowStep}
-					moveWorkflowStep={moveWorkflowStep}
-					personas={personas}
-					serverTools={serverTools}
-					databaseSources={databaseSources}
-					libraryPrompts={libraryPrompts}
-					workflows={systemWorkflows}
-					handleStartEditingWorkflow={handleStartEditingWorkflow}
-					setWorkflowToDelete={setWorkflowToDelete}
-					playWorkflow={handlePlayAndClose}
-					allowSystemDelete={true}
-				/>
-			)}
+			{
+				(isCreatingWorkflow || editingWorkflowId) && (
+					<WorkflowBuilderModal
+						isOpen={true}
+						onClose={() => {
+							setIsCreatingWorkflow(false);
+							setEditingWorkflowId(null);
+						}}
+						workflowForm={workflowForm}
+						setWorkflowForm={setWorkflowForm}
+						editingWorkflowId={editingWorkflowId}
+						setEditingWorkflowId={setEditingWorkflowId}
+						handleSaveWorkflow={handleSaveWorkflow}
+						isCreatingWorkflow={isCreatingWorkflow}
+						setIsCreatingWorkflow={setIsCreatingWorkflow}
+						addWorkflowStep={addWorkflowStep}
+						updateWorkflowStep={updateWorkflowStep}
+						removeWorkflowStep={removeWorkflowStep}
+						moveWorkflowStep={moveWorkflowStep}
+						personas={personas}
+						serverTools={serverTools}
+						databaseSources={databaseSources}
+						libraryPrompts={libraryPrompts}
+						workflows={systemWorkflows}
+						handleStartEditingWorkflow={handleStartEditingWorkflow}
+						setWorkflowToDelete={setWorkflowToDelete}
+						playWorkflow={handlePlayAndClose}
+						allowSystemDelete={true}
+					/>
+				)
+			}
 
 			<DeleteConfirmModal
 				isOpen={!!workflowToDelete}
@@ -385,7 +400,7 @@ const Admin = ({ onBack, isSidebarOpen, onToggleSidebar, personas, libraryPrompt
 				onCancel={() => setWorkflowToDelete(null)}
 				onConfirm={confirmDeleteWorkflow}
 			/>
-		</main>
+		</main >
 	);
 };
 

@@ -63,7 +63,7 @@ const App = () => {
 	const { instance, accounts } = useSafeMsal() as any;
 	const isAuthenticated = useSafeIsAuthenticated();
 
-	const [currentView, setCurrentView] = useState<'chat' | 'admin' | 'profile'>('chat');
+	const [currentView, setCurrentView] = useState<'chat' | 'admin' | 'profile' | 'catalog'>('chat');
 	const [sessions, setSessions] = useState<ChatSession[]>([]);
 	const [folders, setFolders] = useState<Folder[]>([]);
 	const [currentSessionId, setCurrentSessionId] = useState<string | null>(() => getUrlParam('session'));
@@ -2640,6 +2640,8 @@ const App = () => {
 			/>
 		);
 	}
+
+
 
 	return (
 		<div className="flex h-[100dvh] w-full bg-app text-primary overflow-hidden">
