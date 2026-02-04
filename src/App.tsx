@@ -18,8 +18,8 @@ import { AVAILABLE_MODELS, MCP_SERVER_CONFIGS, DEFAULT_PERSONAS, DEFAULT_LIBRARY
 import { MultiModel, Message, AttachedFile, MCPTool, ModelResponse, ChatSession, Folder, Persona, LibraryPrompt, Workflow, DatabaseSource } from './types/index';
 import { copyToClipboard, getCookie, setCookie } from './utils/chatUtils';
 import { formatTime, formatSessionDate } from './utils/dateUtils';
-import { getCosmosConfig, getEffectiveUser, getUserDisplayName, setUserData, getStoredUsername, setActiveGroupId as saveActiveGroupId, setActivePersonaId as saveActivePersonaId, getActiveGroupId, getActivePersonaId } from './utils/storageUtils';
-import { getUrlParam, updateUrlParams } from './utils/urlUtils';
+import { getStoredUsername } from './utils/storageUtils';
+import { getUrlParam } from './utils/urlUtils';
 import { generateModelResponse, searchAzureAISearch } from './services/multiModelService';
 import { saveSharedSession, getSharedSession, listSharedSessions, deleteSharedSession, saveFolder, deleteFolder, listFolders, savePersona, deletePersona, listPersonas, listLibraryPrompts, listWorkflows, listDatabaseSources, CosmosConfig } from './services/cosmosService';
 import { getContentFromWebsite, getContentFromDocuments, getContentForWord, getContentForPDF, getContentForPowerPoint, removeDocumentCache, setDocumentCache } from './services/conversationalModelService';
@@ -66,24 +66,16 @@ const App = () => {
 	const [currentView, setCurrentView] = useState<'chat' | 'admin' | 'profile'>('chat');
 	const [sessions, setSessions] = useState<ChatSession[]>([]);
 	const [folders, setFolders] = useState<Folder[]>([]);
-	const [currentSessionId, setCurrentSessionId] = useState<string | null>(() => {
-		if (typeof window !== 'undefined') {
-			const params = new URLSearchParams(window.location.search);
-			return params.get('session');
-		}
-		return null;
-	});
+	const [currentSessionId, setCurrentSessionId] = useState<string | null>(() => getUrlParam('session'));
 
 	const [workflows, setWorkflows] = useState<Workflow[]>([]);
 	const [userGroups, setUserGroups] = useState<string[]>([]);
 
 	const [currentUser, setCurrentUser] = useState<string>(() => {
 		if (process.env.USE_MSAL === 'true') {
-			if (typeof window !== 'undefined') {
-				const storedUsername = localStorage.getItem('chat_username');
-				if (storedUsername && storedUsername !== 'default_user') {
-					return storedUsername;
-				}
+			const storedUsername = getStoredUsername();
+			if (storedUsername && storedUsername !== 'default_user') {
+				return storedUsername;
 			}
 			return '';
 		}
@@ -1230,28 +1222,6 @@ const App = () => {
 				}
 			}
 		}
-	};
-
-	const formatTime = (timestamp: string) => new Date(parseInt(timestamp)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-	const formatSessionDate = (timestamp: number) => {
-		const date = new Date(timestamp);
-		const now = new Date();
-		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-		const sessionDate = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-
-		const diffTime = today - sessionDate;
-		const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-		if (diffDays === 0) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-		if (diffDays === 1) return 'Yesterday';
-		if (diffDays < 7) return date.toLocaleDateString([], { weekday: 'long' });
-
-		const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-		if (date.getFullYear() !== now.getFullYear()) {
-			options.year = 'numeric';
-		}
-		return date.toLocaleDateString([], options);
 	};
 
 	const groupSessions = (sessionsToGroup: ChatSession[]) => {
