@@ -2,7 +2,7 @@
 import React from 'react';
 import { useA2UI } from '../A2UIContext';
 
-export const A2UIForm = ({ title, children }: { title: string, children: React.ReactNode }) => {
+export const A2UIForm = ({ title, children, readOnly }: { title: string, children: React.ReactNode, readOnly?: boolean }) => {
 	return (
 		<div className="space-y-4">
 			{title && (
@@ -17,7 +17,7 @@ export const A2UIForm = ({ title, children }: { title: string, children: React.R
 	);
 };
 
-export const A2UITextField = ({ label, name, placeholder }: { label: string, name: string, placeholder?: string }) => {
+export const A2UITextField = ({ label, name, placeholder, readOnly }: { label: string, name: string, placeholder?: string, readOnly?: boolean }) => {
 	const { values, setFieldValue } = useA2UI();
 
 	return (
@@ -25,48 +25,51 @@ export const A2UITextField = ({ label, name, placeholder }: { label: string, nam
 			<label className="text-sm font-medium text-secondary" > {label} </label>
 			<input
 				type="text"
-				className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 transition-all shadow-sm"
+				className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 transition-all shadow-sm disabled:opacity-50"
 				value={values[name] || ''}
 				onChange={(e) => setFieldValue(name, e.target.value)}
 				placeholder={placeholder}
+				disabled={readOnly}
 			/>
 		</div>
 	);
 };
 
-export const A2UITextArea = ({ label, name, placeholder, rows = 3 }: { label: string, name: string, placeholder?: string, rows?: number }) => {
+export const A2UITextArea = ({ label, name, placeholder, rows = 3, readOnly }: { label: string, name: string, placeholder?: string, rows?: number, readOnly?: boolean }) => {
 	const { values, setFieldValue } = useA2UI();
 
 	return (
 		<div className="flex flex-col gap-1.5" >
 			<label className="text-sm font-medium text-secondary" > {label} </label>
 			<textarea
-				className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 transition-all shadow-sm resize-y"
+				className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 transition-all shadow-sm resize-y disabled:opacity-50"
 				rows={rows}
 				value={values[name] || ''}
 				onChange={(e) => setFieldValue(name, e.target.value)}
 				placeholder={placeholder}
+				disabled={readOnly}
 			/>
 		</div>
 	);
 };
 
-export const A2UIDatePicker = ({ label, name }: { label: string, name: string }) => {
+export const A2UIDatePicker = ({ label, name, readOnly }: { label: string, name: string, readOnly?: boolean }) => {
 	const { values, setFieldValue } = useA2UI();
 	return (
 		<div className="flex flex-col gap-1.5" >
 			<label className="text-sm font-medium text-secondary" > {label} </label>
 			<input
 				type="date"
-				className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 transition-all shadow-sm"
+				className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 transition-all shadow-sm disabled:opacity-50"
 				value={values[name] || ''}
 				onChange={(e) => setFieldValue(name, e.target.value)}
+				disabled={readOnly}
 			/>
 		</div>
 	);
 };
 
-export const A2UISelect = ({ label, name, options }: { label: string, name: string, options: string[] }) => {
+export const A2UISelect = ({ label, name, options, readOnly }: { label: string, name: string, options: string[], readOnly?: boolean }) => {
 	const { values, setFieldValue } = useA2UI();
 
 	return (
@@ -74,9 +77,10 @@ export const A2UISelect = ({ label, name, options }: { label: string, name: stri
 			<label className="text-sm font-medium text-secondary" > {label} </label>
 			<div className="relative" >
 				<select
-					className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 transition-all shadow-sm appearance-none cursor-pointer"
+					className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 transition-all shadow-sm appearance-none cursor-pointer disabled:opacity-50"
 					value={values[name] || options[0] || ''}
 					onChange={(e) => setFieldValue(name, e.target.value)}
+					disabled={readOnly}
 				>
 					{
 						options.map(opt => (
@@ -94,11 +98,12 @@ export const A2UISelect = ({ label, name, options }: { label: string, name: stri
 	);
 };
 
-export const A2UIMultiSelect = ({ label, name, options }: { label: string, name: string, options: string[] }) => {
+export const A2UIMultiSelect = ({ label, name, options, readOnly }: { label: string, name: string, options: string[], readOnly?: boolean }) => {
 	const { values, setFieldValue } = useA2UI();
 	const currentValues = (values[name] as string[]) || [];
 
 	const toggleOption = (opt: string) => {
+		if (readOnly) return;
 		if (currentValues.includes(opt)) {
 			setFieldValue(name, currentValues.filter(v => v !== opt));
 		} else {
@@ -118,7 +123,8 @@ export const A2UIMultiSelect = ({ label, name, options }: { label: string, name:
 								key={opt}
 								type="button"
 								onClick={() => toggleOption(opt)}
-								className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${isSelected
+								disabled={readOnly}
+								className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all disabled:opacity-50 ${isSelected
 									? 'bg-accent/20 border-accent text-accent'
 									: 'bg-input border-border text-secondary hover:border-accent/50 hover:text-primary'
 									}`}
@@ -132,14 +138,15 @@ export const A2UIMultiSelect = ({ label, name, options }: { label: string, name:
 	);
 };
 
-export const A2UIButton = ({ label, action }: { label: string, action: string }) => {
+export const A2UIButton = ({ label, action, readOnly }: { label: string, action: string, readOnly?: boolean }) => {
 	const { submitForm } = useA2UI();
 
 	return (
 		<button
 			type="button"
 			onClick={() => submitForm(action)}
-			className="w-full mt-4 px-4 py-2.5 bg-accent hover:bg-opacity-90 active:scale-[0.98] text-white font-medium rounded-lg transition-all shadow-sm flex items-center justify-center gap-2"
+			disabled={readOnly}
+			className="w-full mt-4 px-4 py-2.5 bg-accent hover:bg-opacity-90 active:scale-[0.98] text-white font-medium rounded-lg transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:active:scale-100"
 		>
 			{label}
 		</button>
