@@ -3234,7 +3234,7 @@ const App = () => {
 																					<Database className="w-4 h-4" /> Workflow System
 																				</div>
 																				<div className="text-primary text-xs md:text-sm leading-normal markdown-body scroll-pt-4 small-table">
-																					<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
+																					<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} readOnlyMode={readOnlyMode} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
 																				</div>
 																				{msg.searchMetadata && msg.searchMetadata.offset < msg.searchMetadata.totalResults && (
 																					<div className="mt-4 flex justify-start">
@@ -3310,10 +3310,10 @@ const App = () => {
 																				<Database className="w-4 h-4" /> Workflow System
 																			</div>
 																			<div className="text-primary text-xs md:text-sm leading-normal markdown-body scroll-pt-4 small-table">
-																				<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
+																				<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} readOnlyMode={readOnlyMode} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
 																			</div>
 																			<div className="text-primary text-xs md:text-sm leading-normal markdown-body scroll-pt-4 small-table">
-																				<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
+																				<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} readOnlyMode={readOnlyMode} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
 																			</div>
 																			<WorkflowSystemFooter content={msg.content} timestamp={msg.id} onDelete={() => initiateDeleteMessage(msg.id)} />
 																		</div>
@@ -3346,7 +3346,7 @@ const App = () => {
 																						<span className="text-red-400 italic bg-red-400/5 px-2 py-1 rounded">{resp.error}</span>
 																					) : (
 																						<>
-																							<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{resp.text}</ReactMarkdown>
+																							<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} readOnlyMode={readOnlyMode} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{resp.text}</ReactMarkdown>
 																							<ResponseFooter
 																								text={resp.text}
 																								timestamp={msg.id}
@@ -3613,7 +3613,7 @@ const App = () => {
 												</div>
 												<div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
 													<div className="markdown-body text-sm md:text-base leading-relaxed text-primary">
-														<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{resp.text}</ReactMarkdown>
+														<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} readOnlyMode={readOnlyMode} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{resp.text}</ReactMarkdown>
 													</div>
 												</div>
 											</div>

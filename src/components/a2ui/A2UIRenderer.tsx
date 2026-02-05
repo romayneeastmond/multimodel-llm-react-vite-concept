@@ -15,9 +15,10 @@ const COMPONENT_REGISTRY: Record<string, React.FC<any>> = {
 
 interface RendererProps {
 	componentId: string;
+	readOnly?: boolean;
 }
 
-const A2UIRenderer: React.FC<RendererProps> = ({ componentId }) => {
+const A2UIRenderer: React.FC<RendererProps> = ({ componentId, readOnly }) => {
 	const { components } = useA2UI();
 
 	const component = components[componentId];
@@ -40,12 +41,12 @@ const A2UIRenderer: React.FC<RendererProps> = ({ componentId }) => {
 		if (!component.children || component.children.length === 0) return null;
 
 		return component.children.map(childId => (
-			<A2UIRenderer key={childId} componentId={childId} />
+			<A2UIRenderer key={childId} componentId={childId} readOnly={readOnly} />
 		));
-	}, [component.children]);
+	}, [component.children, readOnly]);
 
 	return (
-		<ComponentType {...(component.props || {})}>
+		<ComponentType {...(component.props || {})} readOnly={readOnly}>
 			{renderedChildren}
 		</ComponentType>
 	);

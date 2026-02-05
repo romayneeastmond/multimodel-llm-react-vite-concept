@@ -8,7 +8,7 @@ import { A2UIProvider } from './a2ui/A2UIContext';
 import A2UIRenderer from './a2ui/A2UIRenderer';
 import { showToast } from './ToastManager';
 
-const PreBlock = ({ children, onA2UISubmit, ...props }: any) => {
+const PreBlock = ({ children, onA2UISubmit, readOnlyMode, ...props }: any) => {
 	if (!React.isValidElement(children)) {
 		return <pre {...props}>{children}</pre>;
 	}
@@ -69,7 +69,7 @@ const PreBlock = ({ children, onA2UISubmit, ...props }: any) => {
 									onSubmit={handleSubmit}
 									initialValues={{}}
 								>
-									<A2UIRenderer componentId={parsed.blueprint.rootId} />
+									<A2UIRenderer componentId={parsed.blueprint.rootId} readOnly={readOnlyMode} />
 								</A2UIProvider>
 							</div>
 						)}
