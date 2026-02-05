@@ -212,7 +212,7 @@ const BriefcasePanel = ({ briefcase, databaseSources, isGenerating }: BriefcaseP
 								)}
 
 								<div className="pt-2">
-									<button className="w-full py-2 bg-accent hover:opacity-90 text-white rounded-lg font-bold text-sm shadow-lg shadow-accent/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" disabled={selectedBriefcaseFiles.size === 0} onClick={() => handleRunAnalysis()}>
+									<button className="w-full py-2 bg-accent hover:opacity-90 text-white rounded-lg font-bold text-sm shadow-lg shadow-accent/20 transition-all active:scale-95 disabled:opacity-50" disabled={selectedBriefcaseFiles.size === 0} onClick={() => handleRunAnalysis()}>
 										Run Analysis
 									</button>
 								</div>

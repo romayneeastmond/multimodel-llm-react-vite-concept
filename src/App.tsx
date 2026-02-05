@@ -3159,12 +3159,14 @@ const App = () => {
 																		</button>
 																	)}
 
-																	<button
-																		onClick={(e) => initiateDeleteSession(e, session.id)}
-																		className="p-2 text-secondary hover:text-red-400 rounded-xl"
-																	>
-																		<Trash2 className="w-4 h-4" />
-																	</button>
+																	{!readOnlyMode && (
+																		<button
+																			onClick={(e) => initiateDeleteSession(e, session.id)}
+																			className="p-2 text-secondary hover:text-red-400 rounded-xl"
+																		>
+																			<Trash2 className="w-4 h-4" />
+																		</button>
+																	)}
 																</div>
 															</div>
 														</div>
@@ -3261,13 +3263,15 @@ const App = () => {
 																		</div>
 																	) : (
 																		<>
-																			<button
-																				onClick={() => initiateDeleteMessage(msg.id)}
-																				className="p-2 rounded-full transition-all shrink-0 text-secondary opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-card-hover"
-																				title="Delete Message"
-																			>
-																				<Trash2 className="w-4 h-4" />
-																			</button>
+																			{!readOnlyMode && (
+																				<button
+																					onClick={() => initiateDeleteMessage(msg.id)}
+																					className="p-2 rounded-full transition-all shrink-0 text-secondary opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-card-hover"
+																					title="Delete Message"
+																				>
+																					<Trash2 className="w-4 h-4" />
+																				</button>
+																			)}
 																			<button
 																				onClick={() => handleToggleFavorite(msg.content)}
 																				className={`p-2 rounded-full transition-all shrink-0 ${isFavorited(msg.content)
