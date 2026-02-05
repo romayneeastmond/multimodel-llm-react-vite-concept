@@ -22,17 +22,17 @@ export const AVAILABLE_MODELS = [
 ];
 
 // @ts-ignore
-//export const MCP_SERVER_CONFIGS: MCPServer[] = JSON.parse(process.env.MCP_SERVER_CONFIGS || '[]');
+export const MCP_SERVER_CONFIGS: MCPServer[] = JSON.parse(process.env.MCP_SERVER_CONFIGS || '[]');
 
 // Example MCP Server Config
-export const MCP_SERVER_CONFIGS: MCPServer[] = [
-	{
-		id: 'python-mcp-example',
-		name: 'Intranet Examples MCP Server',
-		url: 'https://dev-mcp-server-a2ui.azurewebsites.net/mcp',
-		tools: [],
-	}
-];
+// export const MCP_SERVER_CONFIGS: MCPServer[] = [
+// 	{
+// 		id: 'python-mcp-example',
+// 		name: 'Python MCP Example',
+// 		url: 'https://YOUR_SERVER_ENDPOINT/mcp',
+// 		tools: [],
+// 	}
+// ];
 
 export const DEFAULT_PERSONAS: Persona[] = [
 	{

@@ -3,6 +3,7 @@ import { A2UIBlueprint } from '../types/a2ui';
 import { A2UIProvider } from './a2ui/A2UIContext';
 import A2UIRenderer from './a2ui/A2UIRenderer';
 import { Send, Search, Calendar } from 'lucide-react';
+import { showToast } from './ToastManager';
 
 const MOCK_BLUEPRINTS: Record<string, A2UIBlueprint> = {
 	vacation: {
@@ -54,6 +55,27 @@ const MOCK_BLUEPRINTS: Record<string, A2UIBlueprint> = {
 			{ "id": "a1", "type": "MultiSelect", "props": { "label": "Attendees", "name": "attendees", "options": ["Admin", "Legal Team", "HR", "External Counsel"] } },
 			{ "id": "sub3", "type": "Button", "props": { "label": "Book Meeting", "action": "submit_outlook" } }
 		]
+	},
+	expense: {
+		"rootId": "exp_form",
+		"components": [
+			{ "id": "exp_form", "type": "Form", "props": { "title": "Expense Report" }, "children": ["d1", "a1", "c1", "r1", "sub_exp"] },
+			{ "id": "d1", "type": "DatePicker", "props": { "label": "Expense Date", "name": "expense_date" } },
+			{ "id": "a1", "type": "TextField", "props": { "label": "Amount", "name": "amount" } },
+			{ "id": "c1", "type": "Select", "props": { "label": "Category", "name": "category", "options": ["Travel", "Meals", "Supplies", "Other"] } },
+			{ "id": "r1", "type": "TextArea", "props": { "label": "Description", "name": "description" } },
+			{ "id": "sub_exp", "type": "Button", "props": { "label": "Submit Expense", "action": "submit_expense" } }
+		]
+	},
+	service: {
+		"rootId": "sd_form",
+		"components": [
+			{ "id": "sd_form", "type": "Form", "props": { "title": "Service Desk Ticket" }, "children": ["cat1", "pri1", "desc1", "sub_sd"] },
+			{ "id": "cat1", "type": "Select", "props": { "label": "Category", "name": "category", "options": ["Hardware", "Software", "Access", "Other"] } },
+			{ "id": "pri1", "type": "Select", "props": { "label": "Priority", "name": "priority", "options": ["Low", "Medium", "High"] } },
+			{ "id": "desc1", "type": "TextArea", "props": { "label": "Description", "name": "description" } },
+			{ "id": "sub_sd", "type": "Button", "props": { "label": "Submit Ticket", "action": "submit_service_desk" } }
+		]
 	}
 };
 
@@ -61,6 +83,8 @@ const MENU_ITEMS = [
 	{ id: 'vacation', label: 'Vacation Request', icon: Send, desc: 'Simple form with dates' },
 	{ id: 'matter_search', label: 'Matter Search', icon: Search, desc: 'Complex layout with rows' },
 	{ id: 'outlook', label: 'Outlook Event', icon: Calendar, desc: 'Multi-select example' },
+	{ id: 'expense', label: 'Expense Report', icon: Calendar, desc: 'Simple form with fields' },
+	{ id: 'service', label: 'Service Desk Ticket', icon: Calendar, desc: 'Simple form with selects' },
 ];
 
 const A2UICatalog = ({ onClose }: { onClose: () => void }) => {
@@ -71,9 +95,10 @@ const A2UICatalog = ({ onClose }: { onClose: () => void }) => {
 
 	const handleSubmit = (action: string, values: any) => {
 		setLastSubmission({ action, data: values });
-		// setTimeout(() => {
-		// 	alert(`Server Action: ${action}\nData: ${JSON.stringify(values, null, 2)}`);
-		// }, 100);
+		showToast({
+			title: 'Form Submitted',
+			message: `Action: ${action}`
+		});
 	};
 
 	return (
@@ -100,7 +125,7 @@ const A2UICatalog = ({ onClose }: { onClose: () => void }) => {
 				</div>
 			</div>
 			<div className="flex-1 overflow-y-auto p-8 flex flex-col items-center">
-				<div className="w-full max-w-3xl space-y-8">
+				<div className="w-full max-w-2xl space-y-8">
 
 					<div className="text-center space-y-2">
 						<h1 className="text-lg font-bold text-primary">Preview: {MOCK_BLUEPRINTS[activeId].components[0].props?.title}</h1>
