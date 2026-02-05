@@ -40,6 +40,16 @@ export interface SearchMetadata {
 	totalResults: number;
 }
 
+export interface ToolResult {
+	toolName: string;
+	toolCallId?: string;
+	resultType: 'text' | 'a2ui' | 'error';
+	content?: string;
+	a2uiBlueprint?: any;
+	a2uiSubmittedData?: Record<string, any>;
+	timestamp: string;
+}
+
 export interface Message {
 	id: string;
 	role: 'user' | 'assistant';
@@ -52,6 +62,7 @@ export interface Message {
 	searchMetadata?: SearchMetadata;
 	workflowExport?: { format: 'text' | 'doc' | 'pdf' | 'excel' | 'pptx' };
 	workflowStepIndex?: number;
+	toolResults?: ToolResult[];
 }
 
 export interface ModelResponseVersion {

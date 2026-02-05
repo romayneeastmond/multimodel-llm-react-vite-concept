@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { A2UIBlueprint } from '../types/a2ui';
 import { A2UIProvider } from './a2ui/A2UIContext';
 import A2UIRenderer from './a2ui/A2UIRenderer';
-import { Layout, Palette, Send, Search, Calendar, FolderOpen, ArrowLeft } from 'lucide-react';
+import { Send, Search, Calendar } from 'lucide-react';
 
 const MOCK_BLUEPRINTS: Record<string, A2UIBlueprint> = {
 	vacation: {

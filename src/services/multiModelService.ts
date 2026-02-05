@@ -14,7 +14,8 @@ const appendToolsToPrompt = (prompt: string, tools: MCPTool[]): string => {
 		return `- ${t.server}.${t.name}: ${t.description}${schemaStr}`;
 	}).join('\n');
 
-	return `${prompt}\n\n[CONTEXT: The following MCP tools are available to you in this session]\n${toolDescription}\n\n[INSTRUCTION: To call a tool, you MUST use the following format. Do NOT hallucinate tool outputs. Do NOT announce what the tool result "is" before calling it. Do NOT fake a tool response.]\n\n1. Provide a brief, user-facing explanation (e.g. "Checking database...").\n2. Create a markdown code block labeled 'json' containing an ARRAY of tool call objects.\n\nExample:\n\`\`\`json\n[\n  { "tool": "server.tool_name", "arguments": { "arg": "value" } },\n  { "tool": "server.other_tool", "arguments": { "id": 123 } }\n]\n\`\`\`\n\n[IMPORTANT: You can call multiple tools in the array. Strictly use the JSON array format inside the code block.]`;
+	return `${prompt}\n\n[CONTEXT: The following MCP tools are available to you in this session]\n${toolDescription}\n\n[INSTRUCTION: To call a tool, you MUST use the following format. Do NOT hallucinate tool outputs. Do NOT announce what the tool result "is" before calling it. Do NOT fake a tool response. If a tool returns a UI blueprint (JSON with rootId and components), do NOT echo or repeat that JSON in your response - it will be rendered automatically.]\n\n1. Provide a brief, user-facing explanation (e.g. "Checking database...").
+2. Create a markdown code block labeled 'json' containing an ARRAY of tool call objects.\n\nExample:\n\`\`\`json\n[\n  { "tool": "server.tool_name", "arguments": { "arg": "value" } },\n  { "tool": "server.other_tool", "arguments": { "id": 123 } }\n]\n\`\`\`\n\n[IMPORTANT: You can call multiple tools in the array. Strictly use the JSON array format inside the code block.]`;
 };
 
 const callAzureDalle = async (model: string, prompt: string): Promise<string> => {
@@ -317,7 +318,7 @@ const callGemini = async (model: string, prompt: string, attachments: AttachedFi
 	return response.text || "No response generated.";
 };
 
-async function callMCPTool(serverUrl: string, name: string, args: any) {
+export async function callMCPTool(serverUrl: string, name: string, args: any) {
 	try {
 		const body = JSON.stringify({
 			jsonrpc: '2.0',
@@ -450,6 +451,27 @@ const executeMCPTool = async (tool: MCPTool, args: any): Promise<string> => {
 
 	try {
 		const result = await callMCPTool(serverConfig.url, tool.name, args);
+
+		if (result.content && Array.isArray(result.content)) {
+			for (const item of result.content) {
+				if (item.type === 'text' && item.text) {
+					try {
+						const parsed = JSON.parse(item.text);
+
+						if (parsed && typeof parsed === 'object' && 'rootId' in parsed && 'components' in parsed && Array.isArray(parsed.components)) {
+							return JSON.stringify({
+								__a2ui__: true,
+								toolName: tool.name,
+								toolId: tool.id,
+								blueprint: parsed
+							}, null, 2);
+						}
+					} catch (_e) {
+
+					}
+				}
+			}
+		}
 
 		return JSON.stringify(result, null, 2);
 	} catch (e: any) {
@@ -684,7 +706,13 @@ export const generateModelResponse = async (model: MultiModel, prompt: string, a
 			break;
 		}
 
-		return combinedResponse;
+		let finalResponse = combinedResponse;
+
+		if (relevantTools.length > 0) {
+			finalResponse = combinedResponse.replace(/```(?:json|javascript|typescript)?\s*\n\s*\{[^`]*"rootId"[^`]*"components"[^`]*\}\s*\n```/gi, '').trim();
+		}
+
+		return finalResponse;
 
 	} catch (error: any) {
 		console.error(`Error with model ${model}:`, error);

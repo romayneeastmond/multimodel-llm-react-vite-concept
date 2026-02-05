@@ -4,10 +4,10 @@ import { useA2UI } from '../A2UIContext';
 
 export const A2UIForm = ({ title, children }: { title: string, children: React.ReactNode }) => {
 	return (
-		<div className="bg-card border border-border rounded-xl p-6 shadow-sm max-w-2xl mx-auto space-y-6">
+		<div className="space-y-4">
 			{title && (
-				<div className="pb-4 border-b border-border">
-					<h2 className="text-lg font-semibold text-primary">{title}</h2>
+				<div className="pb-3 border-b border-border/50">
+					<h2 className="text-base font-semibold text-primary">{title}</h2>
 				</div>
 			)}
 			<div className="space-y-4">
@@ -23,9 +23,9 @@ export const A2UITextField = ({ label, name, placeholder }: { label: string, nam
 	return (
 		<div className="flex flex-col gap-1.5" >
 			<label className="text-sm font-medium text-secondary" > {label} </label>
-			< input
+			<input
 				type="text"
-				className="w-full px-3 py-2 bg-input border border-border rounded-lg text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all placeholder:text-secondary/50"
+				className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 transition-all shadow-sm"
 				value={values[name] || ''}
 				onChange={(e) => setFieldValue(name, e.target.value)}
 				placeholder={placeholder}
@@ -40,8 +40,8 @@ export const A2UITextArea = ({ label, name, placeholder, rows = 3 }: { label: st
 	return (
 		<div className="flex flex-col gap-1.5" >
 			<label className="text-sm font-medium text-secondary" > {label} </label>
-			< textarea
-				className="w-full px-3 py-2 bg-input border border-border rounded-lg text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all placeholder:text-secondary/50 resize-y"
+			<textarea
+				className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 transition-all shadow-sm resize-y"
 				rows={rows}
 				value={values[name] || ''}
 				onChange={(e) => setFieldValue(name, e.target.value)}
@@ -56,9 +56,9 @@ export const A2UIDatePicker = ({ label, name }: { label: string, name: string })
 	return (
 		<div className="flex flex-col gap-1.5" >
 			<label className="text-sm font-medium text-secondary" > {label} </label>
-			< input
+			<input
 				type="date"
-				className="w-full px-3 py-2 bg-input border border-border rounded-lg text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all [color-scheme:dark]"
+				className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 transition-all shadow-sm"
 				value={values[name] || ''}
 				onChange={(e) => setFieldValue(name, e.target.value)}
 			/>
@@ -72,9 +72,9 @@ export const A2UISelect = ({ label, name, options }: { label: string, name: stri
 	return (
 		<div className="flex flex-col gap-1.5" >
 			<label className="text-sm font-medium text-secondary" > {label} </label>
-			< div className="relative" >
+			<div className="relative" >
 				<select
-					className="w-full px-3 py-2 bg-input border border-border rounded-lg text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all appearance-none cursor-pointer"
+					className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-accent/20 transition-all shadow-sm appearance-none cursor-pointer"
 					value={values[name] || options[0] || ''}
 					onChange={(e) => setFieldValue(name, e.target.value)}
 				>
@@ -109,7 +109,7 @@ export const A2UIMultiSelect = ({ label, name, options }: { label: string, name:
 	return (
 		<div className="flex flex-col gap-2" >
 			<label className="text-sm font-medium text-secondary" > {label} </label>
-			< div className="flex flex-wrap gap-2" >
+			<div className="flex flex-wrap gap-2" >
 				{
 					options.map(opt => {
 						const isSelected = currentValues.includes(opt);

@@ -4,8 +4,11 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { ChevronRight, Copy, Download, CheckCheck } from 'lucide-react';
 import { copyToClipboard, downloadCode } from '../utils/chatUtils';
 import ChartBlock from './ChartBlock';
+import { A2UIProvider } from './a2ui/A2UIContext';
+import A2UIRenderer from './a2ui/A2UIRenderer';
+import { showToast } from './ToastManager';
 
-const PreBlock = ({ children, ...props }: any) => {
+const PreBlock = ({ children, onA2UISubmit, ...props }: any) => {
 	if (!React.isValidElement(children)) {
 		return <pre {...props}>{children}</pre>;
 	}
@@ -18,6 +21,64 @@ const PreBlock = ({ children, ...props }: any) => {
 
 	if (language === 'chart' || language === 'json-chart') {
 		return <ChartBlock codeContent={codeContent} />;
+	}
+
+	if (language.startsWith('mcp:')) {
+		try {
+			const parsed = JSON.parse(codeContent);
+			if (parsed.__a2ui__ && parsed.blueprint) {
+				const [isOpen, setIsOpen] = useState(true);
+
+				const handleSubmit = async (action: string, data: Record<string, any>) => {
+					console.log('A2UI Form Submitted:', { action, data, toolName: parsed.toolName });
+					console.log('onA2UISubmit callback exists?', !!onA2UISubmit);
+
+					if (onA2UISubmit) {
+						console.log('Calling onA2UISubmit...');
+						await onA2UISubmit(action, data);
+					} else {
+						console.log('No callback - showing toast');
+						console.log('Form Data:', JSON.stringify(data, null, 2));
+						showToast({
+							title: 'Form Submitted',
+							message: action
+						});
+					}
+				};
+
+				return (
+					<div className="my-4 border border-accent/20 rounded-lg overflow-hidden bg-panel">
+						<div className="flex items-center justify-between px-3 py-2 bg-accent/5 border-b border-accent/10">
+							<div className="flex items-center gap-2">
+								<span className="text-xs font-bold text-accent uppercase tracking-wider">
+									Interactive Form
+								</span>
+								<span className="text-xs text-secondary">from {parsed.toolName}</span>
+							</div>
+							<button
+								onClick={() => setIsOpen(!isOpen)}
+								className="text-xs text-secondary hover:text-primary transition-colors"
+							>
+								{isOpen ? 'Collapse' : 'Expand'}
+							</button>
+						</div>
+						{isOpen && (
+							<div className="p-3">
+								<A2UIProvider
+									componentsList={parsed.blueprint.components}
+									onSubmit={handleSubmit}
+									initialValues={{}}
+								>
+									<A2UIRenderer componentId={parsed.blueprint.rootId} />
+								</A2UIProvider>
+							</div>
+						)}
+					</div>
+				);
+			}
+		} catch (e) {
+			// Not A2UI, fall through to regular MCP rendering
+		}
 	}
 
 	if (language.startsWith('mcp:') || language.startsWith('embed:')) {

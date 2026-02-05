@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Copy, CheckCheck } from 'lucide-react';
+import { Copy, CheckCheck, Trash2 } from 'lucide-react';
 import { copyToClipboard } from '../utils/chatUtils';
 
 interface WorkflowSystemFooterProps {
 	content: string;
 	timestamp: string;
+	onDelete?: () => void;
 }
 
-const WorkflowSystemFooter = ({ content, timestamp }: WorkflowSystemFooterProps) => {
+const WorkflowSystemFooter = ({ content, timestamp, onDelete }: WorkflowSystemFooterProps) => {
 	const [copied, setCopied] = useState(false);
 	const handleCopy = async () => {
 		if (await copyToClipboard(content)) {
@@ -26,6 +27,19 @@ const WorkflowSystemFooter = ({ content, timestamp }: WorkflowSystemFooterProps)
 					{copied ? <CheckCheck className="w-3.5 h-3.5 text-accent" /> : <Copy className="w-3.5 h-3.5" />}
 					<span className="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
 				</button>
+				{onDelete && (
+					<>
+						<div className="h-3 w-px bg-border"></div>
+						<button
+							onClick={onDelete}
+							className="flex items-center gap-1.5 px-2 py-1 text-xs text-secondary hover:text-red-400 hover:bg-card-hover rounded transition-colors"
+							title="Delete Message"
+						>
+							<Trash2 className="w-3.5 h-3.5" />
+							<span className="hidden sm:inline">Delete</span>
+						</button>
+					</>
+				)}
 			</div>
 			<span className="text-[10px] text-secondary select-none">
 				{new Date(parseInt(timestamp)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

@@ -4,8 +4,8 @@ import { PublicClientApplication, EventType } from "@azure/msal-browser";
 import { MsalProvider } from "@azure/msal-react";
 import { msalConfig } from "./src/config/authConfig";
 import App from './src/App';
-import './public/index.css';
-import './public/print.css';
+import './index.css';
+import './print.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

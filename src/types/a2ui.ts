@@ -12,6 +12,9 @@ export interface A2UIComponent {
 export interface A2UIBlueprint {
 	rootId: string;
 	components: A2UIComponent[];
+	submitAction?: {
+		actionMapping: Record<string, string>;
+	};
 }
 
 export interface A2UIContextType {

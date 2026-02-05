@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { AVAILABLE_MODELS, MCP_SERVER_CONFIGS, DEFAULT_PERSONAS, DEFAULT_LIBRARY_PROMPTS, SUGGESTIONS } from './config/constants';
 import { MultiModel, Message, AttachedFile, MCPTool, ModelResponse, ChatSession, Folder, Persona, LibraryPrompt, Workflow, DatabaseSource } from './types/index';
+import { callMCPTool } from './services/multiModelService';
 import { copyToClipboard, getCookie, setCookie } from './utils/chatUtils';
 import { formatTime, formatSessionDate } from './utils/dateUtils';
 import { getStoredUsername } from './utils/storageUtils';
@@ -1744,6 +1745,14 @@ const App = () => {
 		setTimeout(() => setIsInviteCopied(false), 3000);
 	};
 
+	const handleA2UISubmit = async (toolName: string, formData: Record<string, any>) => {
+		if (!currentSessionId || isGenerating) return;
+
+		const toolCallMessage = `Calling the ${toolName} tool with the following data:\n\n\`\`\`json\n[\n  { "tool": "${toolName}", "arguments": ${JSON.stringify(formData, null, 2)} }\n]\n\`\`\``;
+
+		await handleSendWithText(toolCallMessage, currentSessionId);
+	};
+
 	const handleStartEditingFolder = (e: React.MouseEvent, folder: Folder) => {
 		e.stopPropagation();
 		setEditingFolderId(folder.id);
@@ -2072,7 +2081,6 @@ const App = () => {
 					});
 				}
 
-				// Check specifically if the autoAttachment needs caching (since it was skipped by getContentFromDocuments)
 				if (autoAttachment && autoAttachment.statistics.words > 10000 && autoAttachment.content) {
 					await setDocumentCache(autoAttachment.id, autoAttachment.content);
 					autoAttachment.content = undefined;
@@ -2087,7 +2095,6 @@ const App = () => {
 						}
 					}));
 
-					// Ensure we filter out any files (including autoAttachment) that have had their content removed
 					contextAttachments = currentAttachments.filter(att => att.content !== undefined);
 
 					const largeFilesList = currentAttachments.filter(att => att.content === undefined);
@@ -3227,7 +3234,7 @@ const App = () => {
 																					<Database className="w-4 h-4" /> Workflow System
 																				</div>
 																				<div className="text-primary text-xs md:text-sm leading-normal markdown-body scroll-pt-4 small-table">
-																					<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: PreBlock, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
+																					<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
 																				</div>
 																				{msg.searchMetadata && msg.searchMetadata.offset < msg.searchMetadata.totalResults && (
 																					<div className="mt-4 flex justify-start">
@@ -3249,7 +3256,7 @@ const App = () => {
 																						</button>
 																					</div>
 																				)}
-																				<WorkflowSystemFooter content={msg.content} timestamp={msg.id} />
+																				<WorkflowSystemFooter content={msg.content} timestamp={msg.id} onDelete={() => initiateDeleteMessage(msg.id)} />
 																			</div>
 																		</div>
 																	) : (
@@ -3303,12 +3310,12 @@ const App = () => {
 																				<Database className="w-4 h-4" /> Workflow System
 																			</div>
 																			<div className="text-primary text-xs md:text-sm leading-normal markdown-body scroll-pt-4 small-table">
-																				<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: PreBlock, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
+																				<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
 																			</div>
 																			<div className="text-primary text-xs md:text-sm leading-normal markdown-body scroll-pt-4 small-table">
-																				<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: PreBlock, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
+																				<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
 																			</div>
-																			<WorkflowSystemFooter content={msg.content} timestamp={msg.id} />
+																			<WorkflowSystemFooter content={msg.content} timestamp={msg.id} onDelete={() => initiateDeleteMessage(msg.id)} />
 																		</div>
 																	)}
 																	{msg.role === 'assistant' && msg.responses && Object.keys(msg.responses).length > 1 && (
@@ -3339,7 +3346,7 @@ const App = () => {
 																						<span className="text-red-400 italic bg-red-400/5 px-2 py-1 rounded">{resp.error}</span>
 																					) : (
 																						<>
-																							<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: PreBlock, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{resp.text}</ReactMarkdown>
+																							<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{resp.text}</ReactMarkdown>
 																							<ResponseFooter
 																								text={resp.text}
 																								timestamp={msg.id}
@@ -3606,7 +3613,7 @@ const App = () => {
 												</div>
 												<div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
 													<div className="markdown-body text-sm md:text-base leading-relaxed text-primary">
-														<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: PreBlock, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{resp.text}</ReactMarkdown>
+														<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{resp.text}</ReactMarkdown>
 													</div>
 												</div>
 											</div>
