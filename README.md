@@ -515,19 +515,29 @@ Connect to structured data sources.
 
 ---
 
-#### **9. MCP Server Integration** 🔌
-Connect to Model Context Protocol servers for extended functionality.
+#### **9. MCP Server Integration & A2UI Forms** 🔌
+Connect to Model Context Protocol servers for extended functionality and interactive UI.
 
 **Pre-configured Servers:**
 - Hello World (Example)
 
-**Features:**
+**MCP Capabilities:**
 - ✅ Dynamic tool discovery
 - ✅ Tool execution in conversation
 - ✅ JSON-RPC 2.0 support
 - ✅ SSE (Server-Sent Events) streaming
 - ✅ Multiple sequential tool calls from a single prompt
-- ✅ Transparent JSON output display for tool calls
+
+**A2UI (Adaptive AI User Interface):**
+- ✅ **Interactive Forms**: MCP tools can return UI blueprints (JSON) that render as native React components
+- ✅ **Seamless Submission**: Form data is submitted back to the LLM as a tool call request
+- ✅ **Full Cycle**:
+  1. User requests actions (e.g. "Book vacation")
+  2. MCP tool returns A2UI blueprint
+  3. App renders interactive form (DatePickers, Selects, etc.)
+  4. User submits form → App sends tool call request to LLM
+  5. LLM executes tool and returns final result
+- ✅ **Read-only Support**: Forms are automatically disabled in shared/readonly views
 
 ## 🐍 Azure Python MCP Server
 
