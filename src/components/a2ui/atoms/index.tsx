@@ -171,13 +171,13 @@ export const A2UILayoutRow = ({ children }: { children: React.ReactNode }) => {
 export const A2UIWeatherCard = ({ city, temperature, condition, humidity, windSpeed }: { city: string, temperature: string, condition: string, humidity?: string, windSpeed?: string }) => {
 	const getIcon = () => {
 		const c = (condition || '').toLowerCase();
-		if (c.includes('rain')) return <CloudRain className="w-8 h-8 text-blue-400" />;
-		if (c.includes('cloud')) return <Cloud className="w-8 h-8 text-gray-400" />;
-		return <Sun className="w-8 h-8 text-yellow-400" />;
+		if (c.includes('rain')) return <CloudRain className="w-16 h-16 text-blue-400" />;
+		if (c.includes('cloud')) return <Cloud className="w-16 h-16 text-gray-400" />;
+		return <Sun className="w-16 h-16 text-yellow-400" />;
 	};
 
 	return (
-		<div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-6 text-primary shadow-sm">
+		<div className="bg-gradient-to-br from-green-500/10 to-green-500/10 border border-green-500/20 rounded-xl p-6 text-primary shadow-sm">
 			<div className="flex justify-between items-start">
 				<div>
 					<h3 className="text-xl font-bold">{city}</h3>
