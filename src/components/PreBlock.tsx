@@ -51,7 +51,7 @@ const PreBlock = ({ children, onA2UISubmit, readOnlyMode, ...props }: any) => {
 						<div className="flex items-center justify-between px-3 py-2 bg-accent/5 border-b border-accent/10">
 							<div className="flex items-center gap-2">
 								<span className="text-xs font-bold text-accent uppercase tracking-wider">
-									Interactive Form
+									Interactive Component
 								</span>
 								<span className="text-xs text-secondary">from {parsed.toolName}</span>
 							</div>

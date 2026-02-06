@@ -1763,7 +1763,7 @@ const App = () => {
 			return;
 		}
 
-		const toolCallMessage = `Calling the ${toolName} tool with the following data: { ${JSON.stringify(formData, null, 2)} }`;
+		const toolCallMessage = `Calling the ${toolName} tool with the following data: { ${JSON.stringify({ ...formData, user: currentUser }, null, 2)} }`;
 
 		await handleSendWithText(toolCallMessage, currentSessionId);
 	};
