@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { AVAILABLE_MODELS, MCP_SERVER_CONFIGS, DEFAULT_PERSONAS, DEFAULT_LIBRARY_PROMPTS, SUGGESTIONS } from './config/constants';
 import { MultiModel, Message, AttachedFile, MCPTool, ModelResponse, ChatSession, Folder, Persona, LibraryPrompt, Workflow, DatabaseSource } from './types/index';
-import { callMCPTool } from './services/multiModelService';
 import { copyToClipboard, getCookie, setCookie } from './utils/chatUtils';
 import { formatTime, formatSessionDate } from './utils/dateUtils';
 import { getStoredUsername } from './utils/storageUtils';

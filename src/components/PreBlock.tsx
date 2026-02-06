@@ -68,6 +68,7 @@ const PreBlock = ({ children, onA2UISubmit, readOnlyMode, ...props }: any) => {
 									componentsList={parsed.blueprint.components}
 									onSubmit={handleSubmit}
 									initialValues={{}}
+									formId={parsed.blueprint.rootId}
 								>
 									<A2UIRenderer componentId={parsed.blueprint.rootId} readOnly={readOnlyMode} />
 								</A2UIProvider>
@@ -76,8 +77,8 @@ const PreBlock = ({ children, onA2UISubmit, readOnlyMode, ...props }: any) => {
 					</div>
 				);
 			}
-		} catch (e) {
-			// Not A2UI, fall through to regular MCP rendering
+		} catch (_e) {
+
 		}
 	}
 

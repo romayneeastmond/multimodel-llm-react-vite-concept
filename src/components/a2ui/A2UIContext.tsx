@@ -16,9 +16,10 @@ interface A2UIProviderProps {
 	componentsList: A2UIComponent[];
 	onSubmit?: (action: string, values: Record<string, any>) => void;
 	initialValues?: Record<string, any>;
+	formId?: string;
 }
 
-export const A2UIProvider: React.FC<A2UIProviderProps> = ({ children, componentsList, onSubmit, initialValues = {} }) => {
+export const A2UIProvider: React.FC<A2UIProviderProps> = ({ children, componentsList, onSubmit, initialValues = {}, formId }) => {
 	const componentMap = React.useMemo(() => {
 		const map: Record<string, A2UIComponent> = {};
 		componentsList.forEach(c => {
@@ -27,7 +28,26 @@ export const A2UIProvider: React.FC<A2UIProviderProps> = ({ children, components
 		return map;
 	}, [componentsList]);
 
-	const [values, setValues] = useState<Record<string, any>>(initialValues);
+	const [values, setValues] = useState<Record<string, any>>(() => {
+		if (formId && typeof window !== 'undefined') {
+			try {
+				const stored = sessionStorage.getItem(`a2ui_values_${formId}`);
+				if (stored) {
+					return { ...initialValues, ...JSON.parse(stored) };
+				}
+			} catch (e) {
+				console.error("Failed to load A2UI state", e);
+			}
+		}
+		return initialValues;
+	});
+
+	useEffect(() => {
+		if (formId && values) {
+			sessionStorage.setItem(`a2ui_values_${formId}`, JSON.stringify(values));
+		}
+	}, [formId, values]);
+
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	const setFieldValue = useCallback((name: string, value: any) => {
@@ -50,7 +70,12 @@ export const A2UIProvider: React.FC<A2UIProviderProps> = ({ children, components
 		if (onSubmit) {
 			onSubmit(action, values);
 		}
-	}, [onSubmit, values]);
+
+		if (formId) {
+			sessionStorage.removeItem(`a2ui_values_${formId}`);
+			setValues({});
+		}
+	}, [onSubmit, values, formId]);
 
 	const contextValue: A2UIContextType = {
 		components: componentMap,
