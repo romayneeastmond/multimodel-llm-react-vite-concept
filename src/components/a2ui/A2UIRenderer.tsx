@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useA2UI } from './A2UIContext';
-import { A2UIForm, A2UITextField, A2UIDatePicker, A2UISelect, A2UIMultiSelect, A2UITextArea, A2UIButton, A2UILayoutRow, A2UIWeatherCard } from './atoms/index';
+import { A2UIForm, A2UITextField, A2UIDatePicker, A2UISelect, A2UIMultiSelect, A2UITextArea, A2UIButton, A2UILayoutRow, A2UIWeatherCard, A2UICalendar } from './atoms/index';
 
 const COMPONENT_REGISTRY: Record<string, React.FC<any>> = {
 	'Form': A2UIForm,
@@ -11,7 +11,8 @@ const COMPONENT_REGISTRY: Record<string, React.FC<any>> = {
 	'TextArea': A2UITextArea,
 	'Button': A2UIButton,
 	'LayoutRow': A2UILayoutRow,
-	'WeatherCard': A2UIWeatherCard
+	'WeatherCard': A2UIWeatherCard,
+	'Calendar': A2UICalendar
 };
 
 interface RendererProps {

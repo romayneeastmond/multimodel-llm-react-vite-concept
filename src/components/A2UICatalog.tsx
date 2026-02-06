@@ -80,7 +80,27 @@ const MOCK_BLUEPRINTS: Record<string, A2UIBlueprint> = {
 	weather: {
 		"rootId": "w_card",
 		"components": [
-			{ "id": "w_card", "type": "WeatherCard", "props": { "city": "London", "temperature": "18", "condition": "Light Rain", "humidity": "65", "windSpeed": "12" } }
+			{ "id": "w_card", "type": "WeatherCard", "props": { "title": "Weather", "city": "London", "temperature": "18", "condition": "Light Rain", "humidity": "65", "windSpeed": "12" } }
+		]
+	},
+	calendar: {
+		"rootId": "cal_1",
+		"components": [
+			{
+				"id": "cal_1",
+				"type": "Calendar",
+				"props": {
+					"title": "My Calendar",
+					"year": 2026,
+					"month": 2,
+					"events": [
+						{ "id": "ev1", "title": "Project Kickoff", "start": "2026-02-05", "end": "2026-02-05", "category": "work", "url": "https://google.com" },
+						{ "id": "ev2", "title": "Tech Conference", "start": "2026-02-12", "end": "2026-02-14", "category": "personal" },
+						{ "id": "ev3", "title": "Team Sync", "start": "2026-02-18", "end": "2026-02-18", "category": "meeting" },
+						{ "id": "ev4", "title": "Deadline", "start": "2026-02-27", "end": "2026-02-27", "category": "urgent" }
+					]
+				}
+			}
 		]
 	}
 };
@@ -92,6 +112,7 @@ const MENU_ITEMS = [
 	{ id: 'expense', label: 'Expense Report', icon: Calendar, desc: 'Simple form with fields' },
 	{ id: 'service', label: 'Service Desk Ticket', icon: Calendar, desc: 'Simple form with selects' },
 	{ id: 'weather', label: 'Weather Widget', icon: Cloud, desc: 'Informational display card' },
+	{ id: 'calendar', label: 'Calendar View', icon: Calendar, desc: 'Monthly events grid' },
 ];
 
 const A2UICatalog = ({ onClose }: { onClose: () => void }) => {
@@ -133,9 +154,7 @@ const A2UICatalog = ({ onClose }: { onClose: () => void }) => {
 			</div>
 			<div className="flex-1 overflow-y-auto p-8 flex flex-col items-center">
 				<div className="w-full max-w-2xl space-y-8">
-
-					<div className="text-center space-y-2">
-						<h1 className="text-lg font-bold text-primary">Preview: {MOCK_BLUEPRINTS[activeId].components[0].props?.title}</h1>
+					<div className="space-y-2">
 						<p className="text-secondary">Rendered dynamically from JSON schema</p>
 					</div>
 

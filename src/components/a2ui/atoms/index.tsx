@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useA2UI } from '../A2UIContext';
-import { Cloud, Sun, CloudRain, Wind, Droplets } from 'lucide-react';
+import { Cloud, Sun, CloudRain, Wind, Droplets, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 
 export const A2UIForm = ({ title, children, readOnly }: { title: string, children: React.ReactNode, readOnly?: boolean }) => {
 	return (
@@ -204,6 +204,120 @@ export const A2UIWeatherCard = ({ city, temperature, condition, humidity, windSp
 					)}
 				</div>
 			)}
+		</div>
+	);
+};
+
+export const A2UICalendar = ({ title, year, month, events = [] }: { title?: string, year: number, month: number, events: any[] }) => {
+	const [currentDate, setCurrentDate] = React.useState(new Date(year, month - 1, 1));
+
+	React.useEffect(() => {
+		setCurrentDate(new Date(year, month - 1, 1));
+	}, [year, month]);
+
+	const getDaysInMonth = (date: Date) => {
+		const y = date.getFullYear();
+		const m = date.getMonth();
+		const days = new Date(y, m + 1, 0).getDate();
+		const firstDay = new Date(y, m, 1).getDay();
+		return { days, firstDay };
+	};
+
+	const { days, firstDay } = getDaysInMonth(currentDate);
+	const monthName = currentDate.toLocaleString('default', { month: 'long' });
+	const currentYear = currentDate.getFullYear();
+	const currentMonth = currentDate.getMonth();
+
+	const categoryColors: Record<string, string> = {
+		work: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50',
+		personal: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700/50',
+		urgent: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700/50',
+		meeting: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/50',
+		default: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+	};
+
+	const handlePrevMonth = () => {
+		setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
+	};
+
+	const handleNextMonth = () => {
+		setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+	};
+
+	const getEventsForDay = (day: number) => {
+		const currentTimestamp = new Date(currentYear, currentMonth, day).getTime();
+
+		return events.filter(e => {
+			if (!e.start) return false;
+
+			const [sY, sM, sD] = e.start.split('-').map(Number);
+			const start = new Date(sY, sM - 1, sD).getTime();
+
+			const endStr = e.end || e.start;
+			const [eY, eM, eD] = endStr.split('-').map(Number);
+			const end = new Date(eY, eM - 1, eD).getTime();
+
+			return currentTimestamp >= start && currentTimestamp <= end;
+		});
+	};
+
+	const renderCalendarCells = () => {
+		const cells = [];
+
+		for (let i = 0; i < firstDay; i++) {
+			cells.push(<div key={`pad-${i}`} className="min-h-[100px] bg-card/30 border border-border/50 p-2 opacity-50"></div>);
+		}
+
+		for (let day = 1; day <= days; day++) {
+			const dayEvents = getEventsForDay(day);
+			cells.push(
+				<div key={`day-${day}`} className="min-h-[100px] bg-card border border-border/50 p-2 flex flex-col gap-1 hover:bg-accent/5 transition-colors">
+					<div className="text-right text-xs font-medium text-secondary mb-1">{day}</div>
+					{dayEvents.map((evt, idx) => (
+						<button
+							key={`${evt.id}-${day}-${idx}`}
+							onClick={() => evt.url && window.open(evt.url, '_blank')}
+							className={`text-left text-[10px] px-1.5 py-1 rounded border w-full transition-all hover:brightness-95 flex items-center justify-between gap-1 ${categoryColors[evt.category || 'default'] || categoryColors.default} ${evt.url ? 'cursor-pointer hover:underline' : 'cursor-default'}`}
+							title={`${evt.title} (${evt.start} - ${evt.end})`}
+						>
+							<span className="truncate">{evt.title}</span>
+							{evt.url && <ExternalLink className="w-3 h-3 shrink-0 opacity-70" />}
+						</button>
+					))}
+				</div>
+			);
+		}
+		return cells;
+	};
+
+	return (
+		<div className="w-full bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+			<div className="p-4 flex items-center justify-between border-b border-border bg-card/50">
+				<div className="flex flex-col gap-1">
+					{title && <h2 className="text-sm font-bold text-primary opacity-80 uppercase tracking-wide">{title}</h2>}
+					<h3 className="font-semibold text-primary flex items-center gap-2">
+						{monthName} <span className="text-secondary font-normal">{currentYear}</span>
+					</h3>
+				</div>
+				<div className="flex gap-1">
+					<button onClick={handlePrevMonth} className="p-1 hover:bg-accent/10 rounded-lg transition-colors text-secondary hover:text-primary">
+						<ChevronLeft className="w-5 h-5" />
+					</button>
+					<button onClick={handleNextMonth} className="p-1 hover:bg-accent/10 rounded-lg transition-colors text-secondary hover:text-primary">
+						<ChevronRight className="w-5 h-5" />
+					</button>
+				</div>
+			</div>
+			<div className="grid grid-cols-7 border-b border-border bg-card/30">
+				{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+					<div key={d} className="p-2 text-center text-xs font-medium text-secondary/80 uppercase tracking-wider">
+						{d}
+					</div>
+				))}
+			</div>
+			<div className="grid grid-cols-7">
+				{renderCalendarCells()}
+			</div>
 		</div>
 	);
 };
