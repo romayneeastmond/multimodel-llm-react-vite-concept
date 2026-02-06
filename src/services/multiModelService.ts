@@ -324,7 +324,7 @@ export async function callMCPTool(serverUrl: string, name: string, args: any) {
 			jsonrpc: '2.0',
 			method: 'tools/call',
 			params: { name, arguments: args },
-			id: 2
+			id: Date.now()
 		});
 
 		const response = await fetch(serverUrl, {
@@ -333,6 +333,7 @@ export async function callMCPTool(serverUrl: string, name: string, args: any) {
 				'Content-Type': 'application/json',
 				'Accept': 'application/json, text/event-stream'
 			},
+			cache: 'no-store',
 			body: body,
 			signal: AbortSignal.timeout(15000)
 		});
