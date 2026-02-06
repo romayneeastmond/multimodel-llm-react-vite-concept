@@ -485,18 +485,6 @@ const filterRelevantTools = (prompt: string, tools: MCPTool[]): MCPTool[] => {
 
 	const promptLower = prompt.toLowerCase();
 
-	const toolActionKeywords = [
-		'search', 'find', 'lookup', 'query', 'get', 'fetch', 'retrieve',
-		'check', 'analyze', 'scan', 'read', 'list', 'show', 'display',
-		'database', 'db', 'index', 'document', 'file', 'data'
-	];
-
-	const hasToolIntent = toolActionKeywords.some(keyword => promptLower.includes(keyword));
-
-	if (!hasToolIntent) {
-		return [];
-	}
-
 	const relevantTools = tools.filter(tool => {
 		const toolSearchText = [
 			tool.name,

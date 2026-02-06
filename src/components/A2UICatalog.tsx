@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { A2UIBlueprint } from '../types/a2ui';
 import { A2UIProvider } from './a2ui/A2UIContext';
 import A2UIRenderer from './a2ui/A2UIRenderer';
-import { Send, Search, Calendar } from 'lucide-react';
+import { Send, Search, Calendar, Cloud } from 'lucide-react';
 import { showToast } from './ToastManager';
 
 const MOCK_BLUEPRINTS: Record<string, A2UIBlueprint> = {
@@ -76,6 +76,12 @@ const MOCK_BLUEPRINTS: Record<string, A2UIBlueprint> = {
 			{ "id": "desc1", "type": "TextArea", "props": { "label": "Description", "name": "description" } },
 			{ "id": "sub_sd", "type": "Button", "props": { "label": "Submit Ticket", "action": "submit_service_desk" } }
 		]
+	},
+	weather: {
+		"rootId": "w_card",
+		"components": [
+			{ "id": "w_card", "type": "WeatherCard", "props": { "city": "London", "temperature": "18", "condition": "Light Rain", "humidity": "65", "windSpeed": "12" } }
+		]
 	}
 };
 
@@ -85,6 +91,7 @@ const MENU_ITEMS = [
 	{ id: 'outlook', label: 'Outlook Event', icon: Calendar, desc: 'Multi-select example' },
 	{ id: 'expense', label: 'Expense Report', icon: Calendar, desc: 'Simple form with fields' },
 	{ id: 'service', label: 'Service Desk Ticket', icon: Calendar, desc: 'Simple form with selects' },
+	{ id: 'weather', label: 'Weather Widget', icon: Cloud, desc: 'Informational display card' },
 ];
 
 const A2UICatalog = ({ onClose }: { onClose: () => void }) => {

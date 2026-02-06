@@ -45,6 +45,7 @@ import PromptLibraryModal from './components/PromptLibraryModal';
 import BriefcasePanel from './components/BriefcasePanel';
 import CanvasEditor from './components/CanvasEditor';
 import { loginRequest } from './config/authConfig';
+import { showToast } from './components/ToastManager';
 
 const useSafeMsal = () => {
 	if (process.env.USE_MSAL === 'true') {
@@ -1748,7 +1749,21 @@ const App = () => {
 	const handleA2UISubmit = async (toolName: string, formData: Record<string, any>) => {
 		if (!currentSessionId || isGenerating) return;
 
-		const toolCallMessage = `Calling the ${toolName} tool with the following data:\n\n\`\`\`json\n[\n  { "tool": "${toolName}", "arguments": ${JSON.stringify(formData, null, 2)} }\n]\n\`\`\``;
+		const isToolActive = selectedTools.some(t =>
+			t.name === toolName ||
+			(t.server && `${t.server}.${t.name}` === toolName)
+		);
+
+		if (!isToolActive) {
+			showToast({
+				title: "Tool Not Active",
+				message: `The tool '${toolName}' is not currently active or available.<br /><br />Please check your model settings.`,
+				type: 'error'
+			});
+			return;
+		}
+
+		const toolCallMessage = `Calling the ${toolName} tool with the following data: { ${JSON.stringify(formData, null, 2)} }`;
 
 		await handleSendWithText(toolCallMessage, currentSessionId);
 	};
@@ -2107,6 +2122,7 @@ const App = () => {
 				console.error("Error processing documents", err);
 			}
 		}
+
 		const currentModels = modelOverride ? [modelOverride] : [...selectedModels];
 		const currentTools = [...selectedTools];
 

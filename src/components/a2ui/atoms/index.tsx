@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useA2UI } from '../A2UIContext';
+import { Cloud, Sun, CloudRain, Wind, Droplets } from 'lucide-react';
 
 export const A2UIForm = ({ title, children, readOnly }: { title: string, children: React.ReactNode, readOnly?: boolean }) => {
 	return (
@@ -163,6 +164,46 @@ export const A2UILayoutRow = ({ children }: { children: React.ReactNode }) => {
 					</div>
 				))
 			}
+		</div>
+	);
+};
+
+export const A2UIWeatherCard = ({ city, temperature, condition, humidity, windSpeed }: { city: string, temperature: string, condition: string, humidity?: string, windSpeed?: string }) => {
+	const getIcon = () => {
+		const c = (condition || '').toLowerCase();
+		if (c.includes('rain')) return <CloudRain className="w-8 h-8 text-blue-400" />;
+		if (c.includes('cloud')) return <Cloud className="w-8 h-8 text-gray-400" />;
+		return <Sun className="w-8 h-8 text-yellow-400" />;
+	};
+
+	return (
+		<div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-6 text-primary shadow-sm">
+			<div className="flex justify-between items-start">
+				<div>
+					<h3 className="text-xl font-bold">{city}</h3>
+					<p className="text-sm text-secondary capitalize">{condition}</p>
+				</div>
+				{getIcon()}
+			</div>
+			<div className="mt-4 flex items-end gap-2">
+				<span className="text-4xl font-bold">{temperature}°</span>
+			</div>
+			{(humidity || windSpeed) && (
+				<div className="mt-4 pt-4 border-t border-border/50 grid grid-cols-2 gap-4">
+					{humidity && (
+						<div className="flex items-center gap-2 text-sm text-secondary">
+							<Droplets className="w-4 h-4" />
+							<span>Humidity: {humidity}%</span>
+						</div>
+					)}
+					{windSpeed && (
+						<div className="flex items-center gap-2 text-sm text-secondary">
+							<Wind className="w-4 h-4" />
+							<span>Wind: {windSpeed} km/h</span>
+						</div>
+					)}
+				</div>
+			)}
 		</div>
 	);
 };
