@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { ChevronRight, Copy, Download, CheckCheck } from 'lucide-react';
+import { ChevronRight, Copy, Download, CheckCheck, Pin } from 'lucide-react';
 import { copyToClipboard, downloadCode } from '../utils/chatUtils';
 import ChartBlock from './ChartBlock';
 import { A2UIProvider } from './a2ui/A2UIContext';
 import A2UIRenderer from './a2ui/A2UIRenderer';
-import { showToast } from './ToastManager';
 
-const PreBlock = ({ children, onA2UISubmit, readOnlyMode, ...props }: any) => {
+const PreBlock = ({ children, onA2UISubmit, onPinForm, readOnlyMode, ...props }: any) => {
 	if (!React.isValidElement(children)) {
 		return <pre {...props}>{children}</pre>;
 	}
@@ -37,12 +36,13 @@ const PreBlock = ({ children, onA2UISubmit, readOnlyMode, ...props }: any) => {
 						console.log('Calling onA2UISubmit...');
 						await onA2UISubmit(action, data);
 					} else {
-						console.log('No callback - showing toast');
-						console.log('Form Data:', JSON.stringify(data, null, 2));
-						showToast({
-							title: 'Form Submitted',
-							message: action
-						});
+						console.log('No callback - form data not submitted');
+					}
+				};
+
+				const handlePin = () => {
+					if (onPinForm) {
+						onPinForm(parsed.blueprint, parsed.toolName, parsed.blueprint.rootId);
 					}
 				};
 
@@ -55,12 +55,22 @@ const PreBlock = ({ children, onA2UISubmit, readOnlyMode, ...props }: any) => {
 								</span>
 								<span className="text-xs text-secondary">from {parsed.toolName}</span>
 							</div>
-							<button
-								onClick={() => setIsOpen(!isOpen)}
-								className="text-xs text-secondary hover:text-primary transition-colors"
-							>
-								{isOpen ? 'Collapse' : 'Expand'}
-							</button>
+							<div className="flex items-center gap-2">
+								<button
+									onClick={handlePin}
+									className="hidden lg:flex items-center gap-1 px-2 py-1 text-xs text-secondary hover:text-accent hover:bg-accent/10 rounded transition-colors"
+									title="Pin form to side panel"
+								>
+									<Pin className="w-3.5 h-3.5" />
+									Pin
+								</button>
+								<button
+									onClick={() => setIsOpen(!isOpen)}
+									className="text-xs text-secondary hover:text-primary transition-colors"
+								>
+									{isOpen ? 'Collapse' : 'Expand'}
+								</button>
+							</div>
 						</div>
 						{isOpen && (
 							<div className="p-3">

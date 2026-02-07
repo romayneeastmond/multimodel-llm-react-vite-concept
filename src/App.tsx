@@ -43,6 +43,9 @@ import DatabaseSourcesModal from './components/DatabaseSourcesModal';
 import PromptLibraryModal from './components/PromptLibraryModal';
 import BriefcasePanel from './components/BriefcasePanel';
 import CanvasEditor from './components/CanvasEditor';
+import { A2UIProvider } from './components/a2ui/A2UIContext';
+import A2UIRenderer from './components/a2ui/A2UIRenderer';
+import PinnedFormsPanel from './components/PinnedFormsPanel';
 import { loginRequest } from './config/authConfig';
 import { showToast } from './components/ToastManager';
 
@@ -181,6 +184,8 @@ const App = () => {
 	const [newFolderName, setNewFolderName] = useState('');
 	const [regenMenuOpen, setRegenMenuOpen] = useState<{ msgId: string, model: string } | null>(null);
 	const [isOutlineOpen, setIsOutlineOpen] = useState(false);
+	const [pinnedForms, setPinnedForms] = useState<Array<{ blueprint: any, toolName: string, formId: string }>>([]);
+	const [activePinnedFormIndex, setActivePinnedFormIndex] = useState(0);
 	const cachedFileIdsRef = useRef<Set<string>>(new Set());
 	const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 	const [input, setInput] = useState('');
@@ -709,6 +714,18 @@ const App = () => {
 
 		return () => window.removeEventListener('popstate', handleUrlChange);
 	}, [sessions, folders, currentSessionId, currentFolderViewId, activeGroupId]);
+
+	useEffect(() => {
+		if (currentFolderViewId || isLibraryOpen || isWorkflowBuilderOpen || isDatabaseSourcesOpen || isPersonaModalOpen || isCanvasOpen) {
+			setPinnedForms([]);
+			setActivePinnedFormIndex(0);
+		}
+	}, [currentFolderViewId, isLibraryOpen, isWorkflowBuilderOpen, isDatabaseSourcesOpen, isPersonaModalOpen, isCanvasOpen]);
+
+	useEffect(() => {
+		setPinnedForms([]);
+		setActivePinnedFormIndex(0);
+	}, [currentSessionId]);
 
 	useEffect(() => {
 		if (!currentSessionId) {
@@ -1817,6 +1834,26 @@ const App = () => {
 			});
 		}
 		setIsGenerating(false);
+	};
+
+	const handlePinForm = (blueprint: any, toolName: string, formId: string) => {
+		const existingIndex = pinnedForms.findIndex(f => f.formId === formId);
+		if (existingIndex >= 0) {
+			setActivePinnedFormIndex(existingIndex);
+		} else {
+			setPinnedForms(prev => [...prev, { blueprint, toolName, formId }]);
+			setActivePinnedFormIndex(pinnedForms.length);
+			setIsOutlineOpen(false);
+			setIsBriefcaseOpen(false);
+		}
+	};
+
+	const handleUnpinForm = (index?: number) => {
+		const indexToRemove = index !== undefined ? index : activePinnedFormIndex;
+		setPinnedForms(prev => prev.filter((_, i) => i !== indexToRemove));
+		if (activePinnedFormIndex >= pinnedForms.length - 1) {
+			setActivePinnedFormIndex(Math.max(0, pinnedForms.length - 2));
+		}
 	};
 
 	const handleStartEditingFolder = (e: React.MouseEvent, folder: Folder) => {
@@ -3303,7 +3340,7 @@ const App = () => {
 																					<Database className="w-4 h-4" /> Workflow System
 																				</div>
 																				<div className="text-primary text-xs md:text-sm leading-normal markdown-body scroll-pt-4 small-table">
-																					<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} readOnlyMode={readOnlyMode} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
+																					<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} onPinForm={handlePinForm} readOnlyMode={readOnlyMode} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
 																				</div>
 																				{msg.searchMetadata && msg.searchMetadata.offset < msg.searchMetadata.totalResults && (
 																					<div className="mt-4 flex justify-start">
@@ -3381,10 +3418,10 @@ const App = () => {
 																				<Database className="w-4 h-4" /> Workflow System
 																			</div>
 																			<div className="text-primary text-xs md:text-sm leading-normal markdown-body scroll-pt-4 small-table">
-																				<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} readOnlyMode={readOnlyMode} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
+																				<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} onPinForm={handlePinForm} readOnlyMode={readOnlyMode} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
 																			</div>
 																			<div className="text-primary text-xs md:text-sm leading-normal markdown-body scroll-pt-4 small-table">
-																				<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} readOnlyMode={readOnlyMode} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
+																				<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} onPinForm={handlePinForm} readOnlyMode={readOnlyMode} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{msg.content}</ReactMarkdown>
 																			</div>
 																			<WorkflowSystemFooter content={msg.content} timestamp={msg.id} onDelete={() => initiateDeleteMessage(msg.id)} />
 																		</div>
@@ -3417,7 +3454,7 @@ const App = () => {
 																						<span className="text-red-400 italic bg-red-400/5 px-2 py-1 rounded">{resp.error}</span>
 																					) : (
 																						<>
-																							<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} readOnlyMode={readOnlyMode} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{resp.text}</ReactMarkdown>
+																							<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} onPinForm={handlePinForm} readOnlyMode={readOnlyMode} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{resp.text}</ReactMarkdown>
 																							<ResponseFooter
 																								text={resp.text}
 																								timestamp={msg.id}
@@ -3628,6 +3665,17 @@ const App = () => {
 					</div>
 				</div>
 
+				<PinnedFormsPanel
+					pinnedForms={pinnedForms}
+					activePinnedFormIndex={activePinnedFormIndex}
+					setActivePinnedFormIndex={setActivePinnedFormIndex}
+					onUnpinForm={handleUnpinForm}
+					onSubmit={async (action: string, data: Record<string, any>) => {
+						await handleA2UISubmit(action, data);
+					}}
+					readOnlyMode={readOnlyMode}
+				/>
+
 				<BriefcasePanel
 					briefcase={briefcase}
 					databaseSources={databaseSources}
@@ -3684,7 +3732,7 @@ const App = () => {
 												</div>
 												<div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
 													<div className="markdown-body text-sm md:text-base leading-relaxed text-primary">
-														<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} readOnlyMode={readOnlyMode} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{resp.text}</ReactMarkdown>
+														<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ code: CodeBlock, pre: (props) => <PreBlock {...props} onA2UISubmit={handleA2UISubmit} onPinForm={handlePinForm} readOnlyMode={readOnlyMode} />, a: (props) => <a target="_blank" rel="noopener noreferrer" {...props} /> }}>{resp.text}</ReactMarkdown>
 													</div>
 												</div>
 											</div>
