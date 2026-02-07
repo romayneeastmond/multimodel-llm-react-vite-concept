@@ -21,6 +21,12 @@ export const A2UIForm = ({ title, children, readOnly }: { title: string, childre
 export const A2UITextField = ({ label, name, placeholder, readOnly }: { label: string, name: string, placeholder?: string, readOnly?: boolean }) => {
 	const { values, setFieldValue } = useA2UI();
 
+	React.useEffect(() => {
+		if (values[name] === undefined) {
+			setFieldValue(name, '');
+		}
+	}, [name, values, setFieldValue]);
+
 	return (
 		<div className="flex flex-col gap-1.5" >
 			<label className="text-sm font-medium text-secondary" > {label} </label>
@@ -39,6 +45,12 @@ export const A2UITextField = ({ label, name, placeholder, readOnly }: { label: s
 export const A2UITextArea = ({ label, name, placeholder, rows = 3, readOnly }: { label: string, name: string, placeholder?: string, rows?: number, readOnly?: boolean }) => {
 	const { values, setFieldValue } = useA2UI();
 
+	React.useEffect(() => {
+		if (values[name] === undefined) {
+			setFieldValue(name, '');
+		}
+	}, [name, values, setFieldValue]);
+
 	return (
 		<div className="flex flex-col gap-1.5" >
 			<label className="text-sm font-medium text-secondary" > {label} </label>
@@ -56,6 +68,13 @@ export const A2UITextArea = ({ label, name, placeholder, rows = 3, readOnly }: {
 
 export const A2UIDatePicker = ({ label, name, readOnly }: { label: string, name: string, readOnly?: boolean }) => {
 	const { values, setFieldValue } = useA2UI();
+
+	React.useEffect(() => {
+		if (values[name] === undefined) {
+			setFieldValue(name, '');
+		}
+	}, [name, values, setFieldValue]);
+
 	return (
 		<div className="flex flex-col gap-1.5" >
 			<label className="text-sm font-medium text-secondary" > {label} </label>
@@ -72,6 +91,12 @@ export const A2UIDatePicker = ({ label, name, readOnly }: { label: string, name:
 
 export const A2UISelect = ({ label, name, options, readOnly }: { label: string, name: string, options: string[], readOnly?: boolean }) => {
 	const { values, setFieldValue } = useA2UI();
+
+	React.useEffect(() => {
+		if (values[name] === undefined && options.length > 0) {
+			setFieldValue(name, options[0]);
+		}
+	}, [name, options, values, setFieldValue]);
 
 	return (
 		<div className="flex flex-col gap-1.5" >
@@ -102,6 +127,12 @@ export const A2UISelect = ({ label, name, options, readOnly }: { label: string, 
 export const A2UIMultiSelect = ({ label, name, options, readOnly }: { label: string, name: string, options: string[], readOnly?: boolean }) => {
 	const { values, setFieldValue } = useA2UI();
 	const currentValues = (values[name] as string[]) || [];
+
+	React.useEffect(() => {
+		if (values[name] === undefined) {
+			setFieldValue(name, []);
+		}
+	}, [name, values, setFieldValue]);
 
 	const toggleOption = (opt: string) => {
 		if (readOnly) return;

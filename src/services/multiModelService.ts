@@ -14,7 +14,7 @@ const appendToolsToPrompt = (prompt: string, tools: MCPTool[]): string => {
 		return `- ${t.server}.${t.name}: ${t.description}${schemaStr}`;
 	}).join('\n');
 
-	return `${prompt}\n\n[CONTEXT: The following MCP tools are available to you in this session]\n${toolDescription}\n\n[INSTRUCTION: To call a tool, you MUST use the following format. Do NOT hallucinate tool outputs. Do NOT announce what the tool result "is" before calling it. Do NOT fake a tool response. If a tool returns a UI blueprint (JSON with rootId and components), do NOT echo or repeat that JSON in your response - it will be rendered automatically.]\n\n1. Provide a brief, user-facing explanation (e.g. "Checking database...").
+	return `${prompt}\n\n[CONTEXT: The following MCP tools are available to you in this session]\n${toolDescription}\n\n[INSTRUCTION: To call a tool, you MUST use the following format. Do NOT hallucinate tool outputs. Do NOT announce what the tool result "is" before calling it. Do NOT fake a tool response. If a tool returns a UI blueprint (JSON with rootId and components), do NOT echo or repeat that JSON in your response - it will be rendered automatically.]\n\n1. Provide a brief, user-facing explanation (e.g. "Performing action...").
 2. Create a markdown code block labeled 'json' containing an ARRAY of tool call objects.\n\nExample:\n\`\`\`json\n[\n  { "tool": "server.tool_name", "arguments": { "arg": "value" } },\n  { "tool": "server.other_tool", "arguments": { "id": 123 } }\n]\n\`\`\`\n\n[IMPORTANT: You can call multiple tools in the array. Strictly use the JSON array format inside the code block.]`;
 };
 
