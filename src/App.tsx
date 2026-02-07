@@ -1764,7 +1764,59 @@ const App = () => {
 
 		const toolCallMessage = `Calling the ${toolName} tool with the following data: { ${JSON.stringify({ ...formData, user: currentUser }, null, 2)} }`;
 
-		await handleSendWithText(toolCallMessage, currentSessionId);
+		const firstModel = selectedModels.length > 0 ? selectedModels[0] : undefined;
+		if (!firstModel) {
+			showToast({
+				title: "No Model Selected",
+				message: "Please select at least one model to submit the form.",
+				type: 'error'
+			});
+			return;
+		}
+
+		const systemInstruction = `You are a tool execution assistant. Process the provided form data and call the appropriate MCP tool with the given parameters. Return the tool's response directly to the user.`;
+
+		setGuidedPromptMessage(null);
+		const userMessage: Message = {
+			id: Date.now().toString(),
+			role: 'user',
+			content: toolCallMessage,
+			attachments: [],
+			userName: userDisplayName || currentUser || undefined,
+			userId: currentUser ? (activeGroupId ? (userDisplayName || currentUser) : currentUser) : undefined
+		};
+		setMessages(prev => [...prev, userMessage]);
+		setInput('');
+		setAttachments([]);
+		setIsGenerating(true);
+
+		const initialResponses: Record<string, ModelResponse> = {};
+		initialResponses[firstModel] = { model: firstModel, text: '', status: 'loading', versions: [], currentVersionIndex: 0 };
+		setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'assistant', content: '', responses: initialResponses }]);
+
+		try {
+			const currentTools = [...selectedTools];
+
+			const text = await generateModelResponse(firstModel, toolCallMessage, [], currentTools, systemInstruction, []);
+
+			setMessages(prev => {
+				const newMessages = [...prev];
+				const last = newMessages[newMessages.length - 1];
+				if (last.responses && last.responses[firstModel]) {
+					const firstVersion = { text, timestamp: Date.now(), label: 'Original' };
+					last.responses[firstModel] = { model: firstModel, text, status: 'success', versions: [firstVersion], currentVersionIndex: 0 };
+				}
+				return newMessages;
+			});
+		} catch (err: any) {
+			setMessages(prev => {
+				const newMessages = [...prev];
+				const last = newMessages[newMessages.length - 1];
+				if (last.responses && last.responses[firstModel]) last.responses[firstModel] = { model: firstModel, text: '', status: 'error', error: err.message || 'Error' };
+				return newMessages;
+			});
+		}
+		setIsGenerating(false);
 	};
 
 	const handleStartEditingFolder = (e: React.MouseEvent, folder: Folder) => {
