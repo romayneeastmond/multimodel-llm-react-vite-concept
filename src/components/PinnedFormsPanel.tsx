@@ -29,7 +29,7 @@ const PinnedFormsPanel: React.FC<PinnedFormsPanelProps> = ({ pinnedForms, active
 		<div className="hidden lg:block fixed right-0 top-0 bottom-0 w-[400px] bg-panel border-l border-border z-50">
 			<div className="flex flex-col h-full">
 				<div className="flex items-center justify-between p-4 border-b border-border bg-panel shadow-sm">
-					<h3 className="font-semibold flex items-center gap-2 text-primary">
+					<h3 className="font-semibold flex items-center gap-2 tracking-tight">
 						<Pin className="w-4 h-4 text-accent" />
 						Pinned Forms ({pinnedForms.length})
 					</h3>

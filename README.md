@@ -540,6 +540,11 @@ Connect to Model Context Protocol servers for extended functionality and interac
   6. LLM executes tool and returns final result
 - ✅ **Read-only Support**: Forms are automatically disabled in shared/readonly views
 
+### Additional Screenshots
+Additional screnshots found here, [Screenshots](https://github.com/romayneeastmond/multimodel-llm-react-vite-concept/issues/3)
+
+<img alt="Image" src="https://github.com/user-attachments/assets/c5571aa2-e3ef-4fd1-86bc-3f9205c24a98" />
+
 ## 🐍 Azure Python MCP Server
 
 The Hello World example to test the Azure MCP Server can be deployed to your instance own from: [azure-python-mcp-hello-world](https://github.com/romayneeastmond/azure-python-mcp-hello-world)
