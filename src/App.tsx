@@ -1791,7 +1791,10 @@ const App = () => {
 			return;
 		}
 
-		const systemInstruction = `You are a tool execution assistant. Process the provided form data and call the appropriate MCP tool with the given parameters. Return the tool's response directly to the user.`;
+		const systemInstruction = `You are a tool execution assistant. Call the appropriate MCP tool with the provided parameters.
+		When you receive the tool's response, present the information to the user in a clean, human-readable format.
+		CRITICAL: You must rely SOLELY on the data returned by the tool. Do NOT use your internal training data or prior knowledge to answer, 
+		and do NOT hallucinate details not present in the tool's output. If the tool response is insufficient, state that clearly instead of making up information.`;
 
 		setGuidedPromptMessage(null);
 		const userMessage: Message = {
