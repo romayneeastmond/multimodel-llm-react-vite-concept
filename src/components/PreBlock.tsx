@@ -56,14 +56,16 @@ const PreBlock = ({ children, onA2UISubmit, onPinForm, readOnlyMode, ...props }:
 								<span className="text-xs text-secondary">from {parsed.toolName}</span>
 							</div>
 							<div className="flex items-center gap-2">
-								<button
-									onClick={handlePin}
-									className="hidden lg:flex items-center gap-1 px-2 py-1 text-xs text-secondary hover:text-accent hover:bg-accent/10 rounded transition-colors"
-									title="Pin form to side panel"
-								>
-									<Pin className="w-3.5 h-3.5" />
-									Pin
-								</button>
+								{!readOnlyMode && (
+									<button
+										onClick={handlePin}
+										className="hidden lg:flex items-center gap-1 px-2 py-1 text-xs text-secondary hover:text-accent hover:bg-accent/10 rounded transition-colors"
+										title="Pin form to side panel"
+									>
+										<Pin className="w-3.5 h-3.5" />
+										Pin
+									</button>
+								)}
 								<button
 									onClick={() => setIsOpen(!isOpen)}
 									className="text-xs text-secondary hover:text-primary transition-colors"
